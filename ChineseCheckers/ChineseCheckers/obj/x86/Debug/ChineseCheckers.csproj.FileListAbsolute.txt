@@ -1,0 +1,9 @@
+C:\Users\Matei\Documents\0Facultate\ChineseCheckers\ChineseCheckers\ChineseCheckers\bin\x86\Debug\Content\SpriteFont.xnb
+C:\Users\Matei\Documents\0Facultate\ChineseCheckers\ChineseCheckers\ChineseCheckers\bin\x86\Debug\ChineseCheckers.exe
+C:\Users\Matei\Documents\0Facultate\ChineseCheckers\ChineseCheckers\ChineseCheckers\bin\x86\Debug\ChineseCheckers.pdb
+C:\Users\Matei\Documents\0Facultate\ChineseCheckers\ChineseCheckers\ChineseCheckers\bin\x86\Debug\Priority Queue.dll
+C:\Users\Matei\Documents\0Facultate\ChineseCheckers\ChineseCheckers\ChineseCheckers\bin\x86\Debug\Priority Queue.pdb
+C:\Users\Matei\Documents\0Facultate\ChineseCheckers\ChineseCheckers\ChineseCheckers\obj\x86\Debug\ChineseCheckers.csprojResolveAssemblyReference.cache
+C:\Users\Matei\Documents\0Facultate\ChineseCheckers\ChineseCheckers\ChineseCheckers\obj\x86\Debug\Microsoft.Xna.Framework.RuntimeProfile.txt
+C:\Users\Matei\Documents\0Facultate\ChineseCheckers\ChineseCheckers\ChineseCheckers\obj\x86\Debug\ChineseCheckers.exe
+C:\Users\Matei\Documents\0Facultate\ChineseCheckers\ChineseCheckers\ChineseCheckers\obj\x86\Debug\ChineseCheckers.pdb

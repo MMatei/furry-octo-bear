@@ -1,0 +1,5 @@
+C:\Users\Matei\Documents\0Facultate\ChineseCheckers\ChineseCheckers\Priority Queue\obj\Debug\Priority Queue.csprojResolveAssemblyReference.cache
+C:\Users\Matei\Documents\0Facultate\ChineseCheckers\ChineseCheckers\Priority Queue\bin\Debug\Priority Queue.dll
+C:\Users\Matei\Documents\0Facultate\ChineseCheckers\ChineseCheckers\Priority Queue\bin\Debug\Priority Queue.pdb
+C:\Users\Matei\Documents\0Facultate\ChineseCheckers\ChineseCheckers\Priority Queue\obj\Debug\Priority Queue.dll
+C:\Users\Matei\Documents\0Facultate\ChineseCheckers\ChineseCheckers\Priority Queue\obj\Debug\Priority Queue.pdb
