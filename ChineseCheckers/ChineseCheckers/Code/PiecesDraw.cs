@@ -63,10 +63,13 @@ namespace ChineseCheckers
                     }
         }
 
+        public static bool isAnimationDone()
+        {
+            return moveList == null;
+        }
+
         public static void update()
         {
-            if (moveList == null)
-                return;
             if (pieceRect[mp_i][mp_j].X == x && pieceRect[mp_i][mp_j].Y == y)
             {
                 if (moveList.First == null)

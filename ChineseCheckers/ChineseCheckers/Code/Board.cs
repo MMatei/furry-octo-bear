@@ -388,36 +388,60 @@ namespace ChineseCheckers
             return i >= 0 && i < 17 && j >= 0 && j < 13;
         }
 
+        /// <summary>
+        /// Computes the euclidean distance between two point on the table, rounded down
+        /// to the nearest integer, to provide uniformity (due to the hex nature of the board
+        /// sqrt(5) and 2 are actually the same distance)
+        /// If strictly measuring jump distance, divide this by two (so that the
+        /// heuristic is admissible, meaning optimistic)
+        /// </summary>
         private static int h(int fromI, int fromJ, int toI, int toJ)
         {
-            return Math.Max(Math.Abs(toI - fromI), Math.Abs(toJ - fromJ));
+            //return Math.Max(Math.Abs(toI - fromI), Math.Abs(toJ - fromJ));
+            return (int)Math.Sqrt(Math.Pow(toI - fromI, 2) + Math.Pow(toJ - fromJ, 2));
         }
 
         /// <summary>
         /// Make an A* search to get the path of jumps between two points on the board.
-        /// (Including the start point)
+        /// (Including the start point) TODO: optimize (goes over 100 node limit)
         /// </summary>
         public LinkedList<int> getPath(int fromI, int fromJ, int toI, int toJ)
         {
+            byte[][] tempBoard = new byte[19][];
+            for (int k = 0; k < 19; k++)
+            {
+                tempBoard[k] = new byte[15];
+                if (k == 0 || k == 18)
+                    for (int l = 0; l < 15; l++)
+                        tempBoard[k][l] = 255;
+                else
+                {
+                    tempBoard[k][0] = 255;
+                    tempBoard[k][14] = 255;
+                    for (int l = 1; l < 14; l++)
+                        tempBoard[k][l] = board[k - 1][l - 1];
+                }
+            }
+            fromI++; fromJ++; toI++; toJ++; // adjust coordinates to tempBoard
             // First, check if destination is adjacent (no jumps)
-            int imod2 = (fromI+1) % 2;// because we don't use a temp board with +1/+1
+            int imod2 = fromI % 2;
             for (int k = 0; k < 6; k++)
             {
                 int dir_x_2 = k + k;
                 int x = fromI + dirDiff[imod2][dir_x_2];
                 int y = fromJ + dirDiff[imod2][dir_x_2 + 1];
-                if (x == toI && y == toJ) // empty position
+                if (x == toI && y == toJ)
                 {
                     LinkedList<int> path = new LinkedList<int>();
-                    path.AddLast(fromI);
-                    path.AddLast(fromJ);
-                    path.AddLast(x);
-                    path.AddLast(y);
+                    path.AddLast(fromI - 1);
+                    path.AddLast(fromJ - 1);
+                    path.AddLast(x - 1);
+                    path.AddLast(y - 1);
                     return path;
                 }
             }
             // Next, begin A* search; because it is directed, there's no need for a temp board
-            HeapPriorityQueue<SearchNode> queue = new HeapPriorityQueue<SearchNode>(100);
+            HeapPriorityQueue<SearchNode> queue = new HeapPriorityQueue<SearchNode>(300);
             queue.Enqueue(new SearchNode(new LinkedList<int>(), 0, fromI, fromJ));
             while (queue.Count > 0)
             {
@@ -425,44 +449,89 @@ namespace ChineseCheckers
                 if (n.i == toI && n.j == toJ)
                     return n.path;
                 // if not final state, compute all possible jumps
-                imod2 = (n.i+1) % 2;
+                imod2 = n.i % 2;
                 for (int k = 0; k < 6; k++)
                 {
                     int dir_x_2 = k + k;
                     int x = n.i + dirDiff[imod2][dir_x_2];
                     int y = n.j + dirDiff[imod2][dir_x_2 + 1];
-                    if (areInBounds(x, y) && board[x][y] < 6) // piece over which we can jump
+                    if (tempBoard[x][y] < 6) // piece over which we can jump
                     {
-                        int xmod2 = (x+1) % 2;
+                        //tempBoard[x][y] = 255;
+                        int xmod2 = x % 2;
                         // there are three directions in which we can jump: k-1, k, k+1
                         int x2 = x + dirDiff[xmod2][dir_x_2];
                         int y2 = y + dirDiff[xmod2][dir_x_2 + 1];
-                        if (areInBounds(x2, y2) && board[x2][y2] == 128)
+                        if (tempBoard[x2][y2] == 128)
                         {
                             queue.Enqueue(new SearchNode(new LinkedList<int>(n.path),
-                                            (int)(n.path.Count+h(x2,y2,toI,toJ)), x2, y2));
+                                            (int)(n.path.Count + h(x2,y2,toI,toJ)/2), x2, y2));
+                            tempBoard[x2][y2] = 255;
                         }
                         dir_x_2 = (dir_x_2 + 2) % 12;
                         x2 = x + dirDiff[xmod2][dir_x_2];
                         y2 = y + dirDiff[xmod2][dir_x_2 + 1];
-                        if (areInBounds(x2, y2) && board[x2][y2] == 128)
+                        if (tempBoard[x2][y2] == 128)
                         {
                             queue.Enqueue(new SearchNode(new LinkedList<int>(n.path),
-                                            (int)(n.path.Count + h(x2, y2, toI, toJ)), x2, y2));
+                                            (int)(n.path.Count + h(x2, y2, toI, toJ) / 2), x2, y2));
+                            tempBoard[x2][y2] = 255;
                         }
                         dir_x_2 = modulo((dir_x_2 - 4), 12);
                         x2 = x + dirDiff[xmod2][dir_x_2];
                         y2 = y + dirDiff[xmod2][dir_x_2 + 1];
-                        if (areInBounds(x2, y2) && board[x2][y2] == 128)
+                        if (tempBoard[x2][y2] == 128)
                         {
                             queue.Enqueue(new SearchNode(new LinkedList<int>(n.path),
-                                            (int)(n.path.Count + h(x2, y2, toI, toJ)), x2, y2));
+                                            (int)(n.path.Count + h(x2, y2, toI, toJ) / 2), x2, y2));
+                            tempBoard[x2][y2] = 255;
                         }
                     }
                 }
             }
             return null;
         }
+
+        /// <summary>
+        /// Deduces the action which transformed the previous board into this board.
+        /// We do this because we don't want to waste memory by remembering actions in our
+        /// MonteCarloNode.
+        /// </summary>
+        /// <param name="prev">The previous board</param>
+        /// <returns></returns>
+        public Action deduceAction(Board prev)
+        {
+            Action a = new Action(0, 0, 0, 0);
+            for (int i = 0; i < 17; i++)
+            {
+                for (int j = 0; j < 13; j++)
+                {
+                    if (prev.board[i][j] < 6 && board[i][j] == 128)
+                    {
+                        a.fromI = i;
+                        a.fromJ = j;
+                    }
+                    if (prev.board[i][j] == 128 && board[i][j] < 6)
+                    {
+                        a.toI = i;
+                        a.toJ = j;
+                    }
+                }
+            }
+            return a;
+        }
+
+        /// <summary>
+        /// Computes the score of a given action. This score is the distance I've covered
+        /// towards my end goal.
+        /// </summary>
+        public static int score(Action a, int playerIndex)
+        {
+            int pi_2 = playerIndex + playerIndex;
+            return h(a.fromI, a.fromJ, playerGoal[pi_2], playerGoal[pi_2 + 1]) -
+                h(a.toI, a.toJ, playerGoal[pi_2], playerGoal[pi_2 + 1]);
+        }
+        private static int[] playerGoal = { 16, 6, 0, 6, 12, 12, 4, 0, 12, 0, 4, 12};
 
         /// <summary>
         /// Returns true if the player sent as argument won the game. (all of his pieces are
@@ -508,8 +577,8 @@ namespace ChineseCheckers
             public SearchNode(LinkedList<int> _path, int g, int _i, int _j)
             {
                 path = _path;
-                path.AddLast(_i);
-                path.AddLast(_j);
+                path.AddLast(_i - 1); // remmeber, tempBoard coordinates!
+                path.AddLast(_j - 1);
                 Priority = g;
                 i = _i;
                 j = _j;

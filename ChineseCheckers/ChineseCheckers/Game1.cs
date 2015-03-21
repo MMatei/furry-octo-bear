@@ -25,14 +25,19 @@ namespace ChineseCheckers
         private Rectangle[] highlightPositions; // an array of all highlighted positions
         private Board board;
         private Rectangle screenRect;
-        private String[] playerText; // text representing the six players
 
         private double heightRatio, widthRatio;
 
         private RenderTarget2D renderTarget;
 
-        private int numPlayers = 6;
+        public static int numPlayers = 6;
         private int crtPlayer = 0;
+        private String[] playerText; // text representing the six players
+        private bool[] isAI; // is the player AI or human
+
+        private int state = STATE_RUNNING; // the game state, one of the following:
+        private const int STATE_RUNNING = 2;
+        private const int STATE_WON = 3;
 
         public Game1() : base()
         {
@@ -82,7 +87,9 @@ namespace ChineseCheckers
             ball[4] = Texture2D.FromStream(GraphicsDevice, new FileStream("resources/ball_4.png", FileMode.Open));
             ball[5] = Texture2D.FromStream(GraphicsDevice, new FileStream("resources/ball_5.png", FileMode.Open));
             ring = Texture2D.FromStream(GraphicsDevice, new FileStream("resources/ring.png", FileMode.Open));
-            playerText = new String[]{"Red", "Green", "Blue", "Magenta", "Yellow", "Cyan"};
+            playerText = new String[] { "Red", "Green", "Blue", "Magenta", "Yellow", "Cyan" };
+            //isAI = new bool[] { false, false, false, false, false, false };
+            isAI = new bool[] { true, true, true, true, true, true };
             font = Content.Load<SpriteFont>("SpriteFont");
 
             board = new Board(numPlayers);
@@ -105,81 +112,103 @@ namespace ChineseCheckers
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            base.Update(gameTime);
             MouseState mouseState = Mouse.GetState();
             KeyboardState keyboardState = Keyboard.GetState();
             if (keyboardState.IsKeyDown(Keys.Escape))
                 Exit();
+            if (state == STATE_WON)
+                return;
 
-            // adjust mouse position to board space
-            int mouseX = (int)((mouseState.X - 32) * widthRatio);
-            int mouseY = (int)((mouseState.Y - 32) * heightRatio);
-            if (mouseState.LeftButton == ButtonState.Pressed && mouseStatePrev.LeftButton == ButtonState.Released)
-            {// mouse click
-                if (highlightPositions != null)
+            if (PiecesDraw.isAnimationDone())
+            {
+                if (!isAI[crtPlayer])
                 {
-                    // check if I've clicked on the highlighted piece => cancel highlight
-                    if (highlightPositions[0].Contains(mouseX, mouseY))
-                        highlightPositions = null;
-                    else
-                    // check if click in other highlight => move piece there
-                    for (int i = 1; i < highlightPositions.Length; i++)
-                    {
-                        if (highlightPositions[i].Contains(mouseX, mouseY))
+                    // -- HUMAN CONTROLS ---
+                    // adjust mouse position to board space
+                    int mouseX = (int)((mouseState.X - 32) * widthRatio);
+                    int mouseY = (int)((mouseState.Y - 32) * heightRatio);
+                    if (mouseState.LeftButton == ButtonState.Pressed && mouseStatePrev.LeftButton == ButtonState.Released)
+                    {// mouse click
+                        if (highlightPositions != null)
                         {
-                            // reverse-engineer the rectangles to obtain coordinates
-                            int fromI = (highlightPositions[0].Y - 15) / 52;
-                            int fromJ = (highlightPositions[0].X - 22 - (fromI % 2) * 30) / 60;
-                            int toI = (highlightPositions[i].Y - 15) / 52;
-                            int toJ = (highlightPositions[i].X - 22 - (toI % 2) * 30) / 60;
-                            // get path to that position
-                            LinkedList<int> path = board.getPath(fromI, fromJ, toI, toJ);
-                            // start animation
-                            PiecesDraw.createAnimation(path);
-                            board.movePiece(fromI, fromJ, toI, toJ, crtPlayer);
-                            highlightPositions = null;// stop highlighting
-                            // Current player moved -> go to next player
-                            crtPlayer = (crtPlayer + 1) % numPlayers;
-                            break;
+                            // check if I've clicked on the highlighted piece => cancel highlight
+                            if (highlightPositions[0].Contains(mouseX, mouseY))
+                                highlightPositions = null;
+                            else
+                                // check if click in other highlight => move piece there
+                                for (int i = 1; i < highlightPositions.Length; i++)
+                                {
+                                    if (highlightPositions[i].Contains(mouseX, mouseY))
+                                    {
+                                        // reverse-engineer the rectangles to obtain coordinates
+                                        int fromI = (highlightPositions[0].Y - 15) / 52;
+                                        int fromJ = (highlightPositions[0].X - 22 - (fromI % 2) * 30) / 60;
+                                        int toI = (highlightPositions[i].Y - 15) / 52;
+                                        int toJ = (highlightPositions[i].X - 22 - (toI % 2) * 30) / 60;
+                                        // get path to that position
+                                        LinkedList<int> path = board.getPath(fromI, fromJ, toI, toJ);
+                                        // start animation
+                                        PiecesDraw.createAnimation(path);
+                                        board.movePiece(fromI, fromJ, toI, toJ, crtPlayer);
+                                        highlightPositions = null;// stop highlighting
+                                        // Current player moved -> go to next player
+                                        checkForVictory();
+                                        crtPlayer = (crtPlayer + 1) % numPlayers;
+                                        break;
+                                    }
+                                }
+                        }
+                        else
+                        {
+                            // if we've clicked on a piece, select it
+                            // => compute the valid moves and highlight them all
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (PiecesDraw.pieceRect[crtPlayer][j].Contains(mouseX, mouseY))
+                                {
+                                    byte[][] piecePos = board.getPiecePos();
+                                    int pi = piecePos[crtPlayer][j + j];
+                                    int pj = piecePos[crtPlayer][j + j + 1];
+                                    LinkedList<int> validMoves = board.getValidMoves(pi, pj);
+                                    int n = 1 + validMoves.Count / 2; // 2 int coords per move
+                                    highlightPositions = new Rectangle[n];
+                                    highlightPositions[0] = PiecesDraw.pieceRect[crtPlayer][j]; // the clicked piece
+                                    for (int k = 1; k < n; k++)
+                                    {
+                                        pi = validMoves.First.Value;
+                                        validMoves.RemoveFirst();
+                                        pj = validMoves.First.Value;
+                                        validMoves.RemoveFirst();
+                                        int x = 22 + pj * 60 + (pi % 2) * 30;
+                                        int y = 15 + pi * 52;
+                                        highlightPositions[k] = new Rectangle(x, y, 52, 52);
+                                    }
+                                    break;
+                                }
+                            }
                         }
                     }
+
+                    // deselect on right click
+                    if (mouseState.RightButton == ButtonState.Pressed)
+                        highlightPositions = null;
                 }
                 else
                 {
-                    // if we've clicked on a piece, select it
-                    // => compute the valid moves and highlight them all
-                    for (int j = 0; j < 10; j++)
-                    {
-                        if (PiecesDraw.pieceRect[crtPlayer][j].Contains(mouseX, mouseY))
-                        {
-                            byte[][] piecePos = board.getPiecePos();
-                            int pi = piecePos[crtPlayer][j+j];
-                            int pj = piecePos[crtPlayer][j+j+1];
-                            LinkedList<int> validMoves = board.getValidMoves(pi, pj);
-                            int n = 1 + validMoves.Count/2; // 2 int coords per move
-                            highlightPositions = new Rectangle[n];
-                            highlightPositions[0] = PiecesDraw.pieceRect[crtPlayer][j]; // the clicked piece
-                            for (int k = 1; k < n; k++)
-                            {
-                                pi = validMoves.First.Value;
-                                validMoves.RemoveFirst();
-                                pj = validMoves.First.Value;
-                                validMoves.RemoveFirst();
-                                int x = 22 + pj * 60 + (pi % 2) * 30;
-                                int y = 15 + pi * 52;
-                                highlightPositions[k] = new Rectangle(x, y, 52, 52);
-                            }
-                            break;
-                        }
-                    }
+                    // TODO: move AI thinking to separate thread
+                    Board nextBoard = AI.getAIMove(board, crtPlayer);
+                    Action a = nextBoard.deduceAction(board);
+                    LinkedList<int> path = board.getPath(a.fromI, a.fromJ, a.toI, a.toJ);
+                    // start animation
+                    PiecesDraw.createAnimation(path);
+                    board = nextBoard;
+                    checkForVictory();
+                    crtPlayer = (crtPlayer + 1) % numPlayers;
                 }
             }
-
-            // deselect on right click
-            if (mouseState.RightButton == ButtonState.Pressed)
-                highlightPositions = null;
-
-            PiecesDraw.update();
-            base.Update(gameTime);
+            else
+                PiecesDraw.update();
             mouseStatePrev = mouseState;
         }
 
@@ -208,7 +237,10 @@ namespace ChineseCheckers
                     spriteBatch.Draw(ring, r, Color.White);
                 }
             }
-            spriteBatch.DrawString(font, playerText[crtPlayer], Vector2.Zero, Color.White);
+            if(state == STATE_RUNNING)
+                spriteBatch.DrawString(font, playerText[crtPlayer], Vector2.Zero, Color.White);
+            else
+                spriteBatch.DrawString(font, "VICTORIOUS: "+playerText[crtPlayer], Vector2.Zero, Color.White);
             spriteBatch.End();
 
             GraphicsDevice.SetRenderTarget(null);
@@ -218,6 +250,17 @@ namespace ChineseCheckers
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        private void checkForVictory()
+        {
+            if (board.hasWon(crtPlayer))
+            {
+                state = STATE_WON;
+                crtPlayer--; // to counter the +1 made in update
+                if (crtPlayer == -1)
+                    crtPlayer = numPlayers - 1;
+            }
         }
     }
 }
