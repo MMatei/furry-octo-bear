@@ -30,7 +30,7 @@ namespace ChineseCheckers
             // nodul fiu va reprezenta mutarile jucatorului urmator
             playerIndex = (parentPlayerIndex + 1) % Game1.numPlayers;
             children = new LinkedList<MonteCarloNode>();
-            unexploredActions = Action.getActions(board, playerIndex);
+            unexploredActions = Action.getActionsPruned(board, playerIndex);
         }
 
         // this function must be called on the root of the Monte Carlo Tree
@@ -96,9 +96,7 @@ namespace ChineseCheckers
                             bestMove = a;
                         }
                     }
-                    //Console.WriteLine(score + " " + bestMove + " " + pi);
                 }
-                // for random playout : bestMove = moves.get(rand.nextInt(moves.size()));
                 testBoard.movePiece(bestMove.fromI, bestMove.fromJ, bestMove.toI, bestMove.toJ, pi);
                 pi = (pi + 1) % Game1.numPlayers;// each player moves in turn
             }

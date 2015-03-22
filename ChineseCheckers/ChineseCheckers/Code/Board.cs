@@ -12,6 +12,10 @@ namespace ChineseCheckers
     /// </summary>
     class Board
     {
+        // a matrix detailing the board;
+        // 255 means invalid position
+        // 128 means empty position
+        // 2 ^ n means player piece, where n = 0..5
         private byte[][] board;
         private byte[][] piecePos;// the positions of pieces
         // each line l contains the pieces of player l, the (i,j) coordinates written one after the other
@@ -87,33 +91,33 @@ namespace ChineseCheckers
             board[12][5] = 128; board[12][6] = 128; board[12][7] = 128; board[12][8] = 128;
             // finally the place players/ empty in the corners
             // players 0 and 1 are always active
-            board[0][6] = 0;
-            board[1][5] = 0; board[1][6] = 0;
-            board[2][5] = 0; board[2][6] = 0; board[2][7] = 0;
-            board[3][4] = 0; board[3][5] = 0; board[3][6] = 0; board[3][7] = 0;
-            board[16][6] = 1;
-            board[15][5] = 1; board[15][6] = 1;
-            board[14][5] = 1; board[14][6] = 1; board[14][7] = 1;
-            board[13][4] = 1; board[13][5] = 1; board[13][6] = 1; board[13][7] = 1;
+            board[0][6] = 1;
+            board[1][5] = 1; board[1][6] = 1;
+            board[2][5] = 1; board[2][6] = 1; board[2][7] = 1;
+            board[3][4] = 1; board[3][5] = 1; board[3][6] = 1; board[3][7] = 1;
+            board[16][6] = 2;
+            board[15][5] = 2; board[15][6] = 2;
+            board[14][5] = 2; board[14][6] = 2; board[14][7] = 2;
+            board[13][4] = 2; board[13][5] = 2; board[13][6] = 2; board[13][7] = 2;
             byte fill = 128;
-            if (numPlayers > 2) fill = 2;
+            if (numPlayers > 2) fill = 4;
             board[7][1] = fill;
             board[6][1] = fill; board[6][2] = fill;
             board[5][0] = fill; board[5][1] = fill; board[5][2] = fill;
             board[4][0] = fill; board[4][1] = fill; board[4][2] = fill; board[4][3] = fill;
-            if (numPlayers > 3) fill = 3;
+            if (numPlayers > 3) fill = 8;
             else fill = 128;
             board[9][10] = fill;
             board[10][10] = fill; board[10][11] = fill;
             board[11][9] = fill; board[11][10] = fill; board[11][11] = fill;
             board[12][9] = fill; board[12][10] = fill; board[12][11] = fill; board[12][12] = fill;
-            if (numPlayers > 4) fill = 4;
+            if (numPlayers > 4) fill = 16;
             else fill = 128;
             board[7][10] = fill;
             board[6][10] = fill; board[6][11] = fill;
             board[5][9] = fill; board[5][10] = fill; board[5][11] = fill;
             board[4][9] = fill; board[4][10] = fill; board[4][11] = fill; board[4][12] = fill;
-            if (numPlayers > 5) fill = 5;
+            if (numPlayers > 5) fill = 32;
             else fill = 128;
             board[9][1] = fill;
             board[10][1] = fill; board[10][2] = fill;
@@ -288,7 +292,7 @@ namespace ChineseCheckers
                     validMoves.AddLast(y-1);// to the paded board
                     tempBoard[x][y] = 255;
                 }
-                else if (tempBoard[x][y] < 6) // piece over which we can jump
+                else if (tempBoard[x][y] < 33) // piece over which we can jump
                 {
                     int xmod2 = x % 2;
                     tempBoard[x][y] = 255;// unavailable for further jumps
@@ -340,7 +344,7 @@ namespace ChineseCheckers
                     int dir_x_2 = k + k;
                     int x = i + dirDiff[imod2][dir_x_2];
                     int y = j + dirDiff[imod2][dir_x_2 + 1];
-                    if (tempBoard[x][y] < 6) // piece over which we can jump
+                    if (tempBoard[x][y] < 33) // piece over which we can jump
                     {
                         int xmod2 = x % 2;
                         tempBoard[x][y] = 255;// unavailable for further jumps
@@ -455,7 +459,7 @@ namespace ChineseCheckers
                     int dir_x_2 = k + k;
                     int x = n.i + dirDiff[imod2][dir_x_2];
                     int y = n.j + dirDiff[imod2][dir_x_2 + 1];
-                    if (tempBoard[x][y] < 6) // piece over which we can jump
+                    if (tempBoard[x][y] < 33) // piece over which we can jump
                     {
                         //tempBoard[x][y] = 255;
                         int xmod2 = x % 2;
@@ -506,12 +510,12 @@ namespace ChineseCheckers
             {
                 for (int j = 0; j < 13; j++)
                 {
-                    if (prev.board[i][j] < 6 && board[i][j] == 128)
+                    if (prev.board[i][j] < 33 && board[i][j] == 128)
                     {
                         a.fromI = i;
                         a.fromJ = j;
                     }
-                    if (prev.board[i][j] == 128 && board[i][j] < 6)
+                    if (prev.board[i][j] == 128 && board[i][j] < 33)
                     {
                         a.toI = i;
                         a.toJ = j;
@@ -542,32 +546,32 @@ namespace ChineseCheckers
             int sum = 0;
             switch (player)
             {
-                case 1: sum = board[0][6] + board[1][5] + board[1][6];
-                    sum += board[2][5] + board[2][6] + board[2][7];
-                    sum += board[3][4] + board[3][5] + board[3][6] + board[3][7];
-                    break;
-                case 0: sum = board[16][6] + board[15][5] + board[15][6];
-                    sum += board[14][5] + board[14][6] + board[14][7];
-                    sum += board[13][4] + board[13][5] + board[13][6] + board[13][7];
-                    break;
-                case 3: sum = board[7][1] + board[6][1] + board[6][2];
-                    sum += board[5][0] + board[5][1] + board[5][2];
-                    sum += board[4][0] + board[4][1] + board[4][2] + board[4][3];
-                    break;
-                case 2: sum = board[9][10] + board[10][10] + board[10][11];
-                    sum += board[11][9] + board[11][10] + board[11][11];
-                    sum += board[12][9] + board[12][10] + board[12][11] + board[12][12];
-                    break;
-                case 5: sum = board[7][10] + board[6][10] + board[6][11];
-                    sum += board[5][9] + board[5][10] + board[5][11];
-                    sum += board[4][9] + board[4][10] + board[4][11] + board[4][12];
-                    break;
-                case 4: sum = board[9][1] + board[10][1] + board[10][2];
-                    sum += board[11][0] + board[11][1] + board[11][2];
-                    sum += board[12][0] + board[12][1] + board[12][2] + board[12][3];
-                    break;
+                case 1: sum = board[0][6] & board[1][5] & board[1][6];
+                    sum &= board[2][5] & board[2][6] & board[2][7];
+                    sum &= board[3][4] & board[3][5] & board[3][6] & board[3][7];
+                    return sum == 2;
+                case 0: sum = board[16][6] & board[15][5] & board[15][6];
+                    sum &= board[14][5] & board[14][6] & board[14][7];
+                    sum &= board[13][4] & board[13][5] & board[13][6] & board[13][7];
+                    return sum == 1;
+                case 3: sum = board[7][1] & board[6][1] & board[6][2];
+                    sum &= board[5][0] & board[5][1] & board[5][2];
+                    sum &= board[4][0] & board[4][1] & board[4][2] & board[4][3];
+                    return sum == 8;
+                case 2: sum = board[9][10] & board[10][10] & board[10][11];
+                    sum &= board[11][9] & board[11][10] & board[11][11];
+                    sum &= board[12][9] & board[12][10] & board[12][11] & board[12][12];
+                    return sum == 4;
+                case 5: sum = board[7][10] & board[6][10] & board[6][11];
+                    sum &= board[5][9] & board[5][10] & board[5][11];
+                    sum &= board[4][9] & board[4][10] & board[4][11] + board[4][12];
+                    return sum == 32;
+                case 4: sum = board[9][1] & board[10][1] & board[10][2];
+                    sum &= board[11][0] & board[11][1] & board[11][2];
+                    sum &= board[12][0] & board[12][1] & board[12][2] & board[12][3];
+                    return sum == 16;
             }
-            return sum == 10 * player;
+            return false;
         }
 
         private class SearchNode : PriorityQueueNode

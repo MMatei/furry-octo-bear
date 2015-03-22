@@ -8,7 +8,7 @@ namespace ChineseCheckers
     class AI
     {
         // 1 second thinking time
-        private const long THINK_TIME = 1000;
+        private const long THINK_TIME = 3000;
 
         public static long currentTimeMillis()
         {
