@@ -34,6 +34,7 @@ namespace ChineseCheckers
         private int crtPlayer = 0;
         private String[] playerText; // text representing the six players
         private bool[] isAI; // is the player AI or human
+        private AI ai;
 
         private int state = STATE_RUNNING; // the game state, one of the following:
         private const int STATE_RUNNING = 2;
@@ -94,6 +95,7 @@ namespace ChineseCheckers
 
             board = new Board(numPlayers);
             PiecesDraw.createPieceRectangles(board.getPiecePos(), numPlayers);
+            ai = AI.startAIThread();
         }
 
         /// <summary>
@@ -102,7 +104,7 @@ namespace ChineseCheckers
         /// </summary>
         protected override void UnloadContent()
         {
-            // TODO: Unload any non ContentManager content here
+            ai.stop();
         }
 
         /// <summary>
@@ -196,15 +198,20 @@ namespace ChineseCheckers
                 }
                 else
                 {
-                    // TODO: move AI thinking to separate thread
-                    Board nextBoard = AI.getAIMove(board, crtPlayer);
-                    Action a = nextBoard.deduceAction(board);
-                    LinkedList<int> path = board.getPath(a.fromI, a.fromJ, a.toI, a.toJ);
-                    // start animation
-                    PiecesDraw.createAnimation(path);
-                    board = nextBoard;
-                    checkForVictory();
-                    crtPlayer = (crtPlayer + 1) % numPlayers;
+                    if (ai.thinking == 2) // thinking is done on a separate thread
+                    {
+                        ai.thinking = 0;
+                        Board nextBoard = ai.board;
+                        Action a = nextBoard.deduceAction(board);
+                        LinkedList<int> path = board.getPath(a.fromI, a.fromJ, a.toI, a.toJ);
+                        // start animation
+                        PiecesDraw.createAnimation(path);
+                        board = nextBoard;
+                        checkForVictory();
+                        crtPlayer = (crtPlayer + 1) % numPlayers;
+                    }
+                    else if(ai.thinking == 0)
+                        ai.think(board, crtPlayer);
                 }
             }
             else

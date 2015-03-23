@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace ChineseCheckers
 {
@@ -9,13 +10,31 @@ namespace ChineseCheckers
     {
         // 1 second thinking time
         private const long THINK_TIME = 3000;
+        private static Thread thread;
+        private bool running = true;
 
-        public static long currentTimeMillis()
+        public int thinking = 0; // 0 - not thinking, 1 - thinking, 2 - done thinking
+        // when 0 is set, the input is stored in board
+        // when 2 is set, the result is stored in board
+        public Board board;
+        public int playerIndex;
+
+        public static AI startAIThread()
+        {
+            if (thread != null) // prevent multiple call
+                return null;
+            AI ai = new AI();
+            thread = new Thread(new ThreadStart(ai.execute));
+            thread.Start();
+            return ai;
+        }
+
+        private static long currentTimeMillis()
         {
             return DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
         }
     
-        public static Board getAIMove(Board board, int playerIndex)
+        private Board getAIMove()
         {
             // initialize Monte Carlo Tree
             // the root must be the previous player, so that its children
@@ -39,6 +58,34 @@ namespace ChineseCheckers
             }
             Console.WriteLine("explored " + nodesExplored + " nodes ");
             return tree.getBestResult();
+        }
+
+        public void think(Board board, int playerIndex)
+        {
+            this.board = board;
+            this.playerIndex = playerIndex;
+            thinking = 1;
+            lock (this) {
+                Monitor.Pulse(this);// wake up the thread
+            }
+        }
+
+        private void execute()
+        {
+            while (running)
+            {
+                lock (this) {
+                    Monitor.Wait(this);// sleep until work is available
+                }
+                board = getAIMove();
+                thinking = 2;
+            }
+        }
+
+        public void stop()
+        {
+            running = false;
+            thread.Join();
         }
     }
 }
