@@ -93,6 +93,7 @@ namespace ChineseCheckers
             isAI = new bool[] { true, true, true, true, true, true };
             font = Content.Load<SpriteFont>("SpriteFont");
 
+            Board.initTempBoard();
             board = new Board(numPlayers);
             PiecesDraw.createPieceRectangles(board.getPiecePos(), numPlayers);
             ai = AI.startAIThread();

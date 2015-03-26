@@ -19,6 +19,25 @@ namespace ChineseCheckers
         private byte[][] board;
         private byte[][] piecePos;// the positions of pieces
         // each line l contains the pieces of player l, the (i,j) coordinates written one after the other
+        private static byte[][] tempBoard; // used in calculating jumps
+        // since there's no reason no dynamically create/free it, we make it static
+        // use the below to initialize it at the beggining of the game
+        public static void initTempBoard()
+        {
+            tempBoard = new byte[19][];
+            for (int k = 0; k < 19; k++)
+            {
+                tempBoard[k] = new byte[15];
+                if (k == 0 || k == 18)
+                    for (int l = 0; l < 15; l++)
+                        tempBoard[k][l] = 255;
+                else
+                {
+                    tempBoard[k][0] = 255;
+                    tempBoard[k][14] = 255;
+                }
+            }
+        }
 
         /**  0 1
          *  5 x 2  The directions around a hex; the following array lists the diff
@@ -264,20 +283,10 @@ namespace ChineseCheckers
             // next, create a temporary board on which we mark positions already considered
             // we will add a padding around the tempBoard, so that we don't need to worry
             // about indexes going outside the array
-            byte[][] tempBoard = new byte[19][];
-            for (int k = 0; k < 19; k++)
+            for (int k = 1; k < 18; k++)
             {
-                tempBoard[k] = new byte[15];
-                if (k == 0 || k == 18)
-                    for (int l = 0; l < 15; l++)
-                        tempBoard[k][l] = 255;
-                else
-                {
-                    tempBoard[k][0] = 255;
-                    tempBoard[k][14] = 255;
-                    for (int l = 1; l < 14; l++)
-                        tempBoard[k][l] = board[k-1][l-1];
-                }
+                for (int l = 1; l < 14; l++)
+                    tempBoard[k][l] = board[k-1][l-1];
             }
             i++; j++; // adjust i and j to the padded board
             int imod2 = i % 2; // used to determine whether we're on an odd or even numbered line
@@ -407,24 +416,14 @@ namespace ChineseCheckers
 
         /// <summary>
         /// Make an A* search to get the path of jumps between two points on the board.
-        /// (Including the start point) TODO: optimize (goes over 100 node limit)
+        /// (Including the start point)
         /// </summary>
         public LinkedList<int> getPath(int fromI, int fromJ, int toI, int toJ)
         {
-            byte[][] tempBoard = new byte[19][];
-            for (int k = 0; k < 19; k++)
+            for (int k = 1; k < 18; k++)
             {
-                tempBoard[k] = new byte[15];
-                if (k == 0 || k == 18)
-                    for (int l = 0; l < 15; l++)
-                        tempBoard[k][l] = 255;
-                else
-                {
-                    tempBoard[k][0] = 255;
-                    tempBoard[k][14] = 255;
-                    for (int l = 1; l < 14; l++)
-                        tempBoard[k][l] = board[k - 1][l - 1];
-                }
+                for (int l = 1; l < 14; l++)
+                    tempBoard[k][l] = board[k - 1][l - 1];
             }
             fromI++; fromJ++; toI++; toJ++; // adjust coordinates to tempBoard
             // First, check if destination is adjacent (no jumps)

@@ -11,7 +11,6 @@ namespace ChineseCheckers
         // 1 second thinking time
         private const long THINK_TIME = 3000;
         private static Thread thread;
-        private bool running = true;
 
         public int thinking = 0; // 0 - not thinking, 1 - thinking, 2 - done thinking
         // when 0 is set, the input is stored in board
@@ -72,7 +71,7 @@ namespace ChineseCheckers
 
         private void execute()
         {
-            while (running)
+            while (true)
             {
                 lock (this) {
                     Monitor.Wait(this);// sleep until work is available
@@ -84,8 +83,7 @@ namespace ChineseCheckers
 
         public void stop()
         {
-            running = false;
-            thread.Join();
+            thread.Abort();
         }
     }
 }
