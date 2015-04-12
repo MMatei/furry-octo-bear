@@ -30,7 +30,7 @@ namespace ChineseCheckers
 
         private RenderTarget2D renderTarget;
 
-        public static int numPlayers = 6;
+        public static int numPlayers;
         private int crtPlayer = 0;
         private String[] playerText; // text representing the six players
         private bool[] isAI; // is the player AI or human
@@ -89,9 +89,8 @@ namespace ChineseCheckers
             ball[5] = Texture2D.FromStream(GraphicsDevice, new FileStream("resources/ball_5.png", FileMode.Open));
             ring = Texture2D.FromStream(GraphicsDevice, new FileStream("resources/ring.png", FileMode.Open));
             playerText = new String[] { "Red", "Green", "Blue", "Magenta", "Yellow", "Cyan" };
-            //isAI = new bool[] { false, false, false, false, false, false };
-            isAI = new bool[] { true, true, true, true, true, true };
             font = Content.Load<SpriteFont>("SpriteFont");
+            loadConfig(); // numPlayers, isAi, constant values
 
             Board.initTempBoard();
             board = new Board(numPlayers);
@@ -158,6 +157,9 @@ namespace ChineseCheckers
                                         // Current player moved -> go to next player
                                         checkForVictory();
                                         crtPlayer = (crtPlayer + 1) % numPlayers;
+                                        if(isAI[crtPlayer])
+                                            // while animation is playing, think
+                                            ai.think(board, crtPlayer);
                                         break;
                                     }
                                 }
@@ -210,6 +212,9 @@ namespace ChineseCheckers
                         board = nextBoard;
                         checkForVictory();
                         crtPlayer = (crtPlayer + 1) % numPlayers;
+                        if (isAI[crtPlayer])
+                            // while animation is playing, think
+                            ai.think(board, crtPlayer);
                     }
                     else if(ai.thinking == 0)
                         ai.think(board, crtPlayer);
@@ -269,6 +274,21 @@ namespace ChineseCheckers
                 if (crtPlayer == -1)
                     crtPlayer = numPlayers - 1;
             }
+        }
+
+        // Loads information regarding the number of players and whether these players are AI/human
+        // from the file config.txt; this is done to allow automated testing
+        // this should be further expanded with values for constants and AI algorithms
+        private void loadConfig()
+        {
+            System.IO.StreamReader file = new System.IO.StreamReader("config.txt");
+            numPlayers = Convert.ToInt32(file.ReadLine());
+            String s = file.ReadLine();
+            String[] bools = s.Split(' ');
+            isAI = new bool[numPlayers];
+            for (int i = 0; i < numPlayers; i++)
+                isAI[i] = Convert.ToBoolean(bools[i]);
+            file.Close();
         }
     }
 }
