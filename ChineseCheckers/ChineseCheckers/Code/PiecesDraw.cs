@@ -68,13 +68,14 @@ namespace ChineseCheckers
             return moveList == null;
         }
 
-        public static void update()
+        public static void update(Game1 game)
         {
             if (pieceRect[mp_i][mp_j].X == x && pieceRect[mp_i][mp_j].Y == y)
             {
                 if (moveList.First == null)
                 {
                     moveList = null;
+                    game.nextPlayer(); // activate next player when animation done
                     return;
                 }
                 int lin = moveList.First.Value;

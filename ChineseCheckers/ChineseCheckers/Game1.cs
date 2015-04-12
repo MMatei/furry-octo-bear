@@ -156,10 +156,10 @@ namespace ChineseCheckers
                                         highlightPositions = null;// stop highlighting
                                         // Current player moved -> go to next player
                                         checkForVictory();
-                                        crtPlayer = (crtPlayer + 1) % numPlayers;
-                                        if(isAI[crtPlayer])
+                                        int nextPlayer = (crtPlayer + 1) % numPlayers;
+                                        if(isAI[nextPlayer])
                                             // while animation is playing, think
-                                            ai.think(board, crtPlayer);
+                                            ai.think(board, nextPlayer);
                                         break;
                                     }
                                 }
@@ -211,17 +211,17 @@ namespace ChineseCheckers
                         PiecesDraw.createAnimation(path);
                         board = nextBoard;
                         checkForVictory();
-                        crtPlayer = (crtPlayer + 1) % numPlayers;
-                        if (isAI[crtPlayer])
+                        int nextPlayer = (crtPlayer + 1) % numPlayers;
+                        if (isAI[nextPlayer])
                             // while animation is playing, think
-                            ai.think(board, crtPlayer);
+                            ai.think(board, nextPlayer);
                     }
                     else if(ai.thinking == 0)
                         ai.think(board, crtPlayer);
                 }
             }
             else
-                PiecesDraw.update();
+                PiecesDraw.update(this);
             mouseStatePrev = mouseState;
         }
 
@@ -289,6 +289,12 @@ namespace ChineseCheckers
             for (int i = 0; i < numPlayers; i++)
                 isAI[i] = Convert.ToBoolean(bools[i]);
             file.Close();
+        }
+
+        // to be used by PiecesDraw, when animation is done
+        internal void nextPlayer()
+        {
+            crtPlayer = (crtPlayer + 1) % numPlayers;
         }
     }
 }
