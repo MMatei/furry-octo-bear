@@ -120,7 +120,10 @@ namespace ChineseCheckers
             if (keyboardState.IsKeyDown(Keys.Escape))
                 Exit();
             if (state == STATE_WON)
+            {
+                PiecesDraw.update(this); // otherwise last move will not be shown
                 return;
+            }
 
             if (PiecesDraw.isAnimationDone())
             {
@@ -268,12 +271,7 @@ namespace ChineseCheckers
         private void checkForVictory()
         {
             if (board.hasWon(crtPlayer))
-            {
                 state = STATE_WON;
-                crtPlayer--; // to counter the +1 made in update
-                if (crtPlayer == -1)
-                    crtPlayer = numPlayers - 1;
-            }
         }
 
         // Loads information regarding the number of players and whether these players are AI/human
