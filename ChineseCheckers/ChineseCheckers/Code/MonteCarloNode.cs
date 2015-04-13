@@ -14,6 +14,8 @@ namespace ChineseCheckers
         private static double eps = 5;
         private static Random rand = new Random();
 
+        public static int AIPlayerIndex;// the index of the AI player on whose behalf we are running this scheme
+
         private int playerIndex;
         private MonteCarloNode parent;
         private Board board; // starea jocului la momentul reprezentat de acest nod
@@ -30,7 +32,30 @@ namespace ChineseCheckers
             // nodul fiu va reprezenta mutarile jucatorului urmator
             playerIndex = (parentPlayerIndex + 1) % Game1.numPlayers;
             children = new LinkedList<MonteCarloNode>();
-            unexploredActions = Action.getActionsPruned(board, playerIndex);
+            // Daca jucatorul curent a castigat jocul, nodul este terminal (n-avem ce explora mai departe)
+            // altfel, detaliem actiunile posibile pt jucatorul curent => noduri copil posibile
+            // luam in calcul doar cele mai bune beta actiuni, pt a elimina din noduri
+            // (factor de ramificare imens + viteza mica de explorare == dezastru)
+            if (!board.hasWon(playerIndex))
+                unexploredActions = Action.getActionsPruned(board, playerIndex);
+            else
+            {
+                unexploredActions = new List<Action>();
+                if (playerIndex == AIPlayerIndex)
+                {
+                    // This node represents a victory by me; implicitly assign to it a high score
+                    // in order to give more weight to the chain of actions leading here
+                    victories = 1000;
+                    totalGames = 1000;
+                    MonteCarloNode node = this; // backpropagate
+                    while (node.parent != null)
+                    {
+                        node.parent.totalGames += 1000;
+                        node.parent.victories += 1000;
+                        node = node.parent;
+                    }
+                }
+            }
         }
 
         // this function must be called on the root of the Monte Carlo Tree

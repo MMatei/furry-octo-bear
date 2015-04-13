@@ -121,7 +121,8 @@ namespace ChineseCheckers
                 Exit();
             if (state == STATE_WON)
             {
-                PiecesDraw.update(this); // otherwise last move will not be shown
+                if (!PiecesDraw.isAnimationDone())
+                    PiecesDraw.update(this); // otherwise last move will not be shown
                 return;
             }
 
@@ -292,7 +293,8 @@ namespace ChineseCheckers
         // to be used by PiecesDraw, when animation is done
         internal void nextPlayer()
         {
-            crtPlayer = (crtPlayer + 1) % numPlayers;
+            if(state != STATE_WON)
+                crtPlayer = (crtPlayer + 1) % numPlayers;
         }
     }
 }

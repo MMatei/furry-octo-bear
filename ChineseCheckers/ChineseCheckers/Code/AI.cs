@@ -35,6 +35,7 @@ namespace ChineseCheckers
     
         private Board getAIMove()
         {
+            MonteCarloNode.AIPlayerIndex = playerIndex;
             // initialize Monte Carlo Tree
             // the root must be the previous player, so that its children
             //  represent the actions of the current player

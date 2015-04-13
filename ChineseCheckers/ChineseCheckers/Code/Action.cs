@@ -61,14 +61,12 @@ namespace ChineseCheckers
                     // can perform k-best pruning
                     a.score = Board.score(a, playerIndex);
                     unexploredActions.Add(a);
-                    unexploredActions.Sort(new Comparator());
-                    int count = unexploredActions.Count - k;
-                    if (count > 0)
-                    {
-                        unexploredActions.RemoveRange(5, count);
-                    }
                 }
             }
+            unexploredActions.Sort(new Comparator());
+            int count = unexploredActions.Count - k;
+            if (count > 0 /*&& unexploredActions[0].score > 0*/)
+                unexploredActions.RemoveRange(k, count);
             return unexploredActions;
         }
 
