@@ -41,7 +41,7 @@ namespace ChineseCheckers
             return unexploredActions;
         }
 
-        public static List<Action> getActionsPruned(Board board, int playerIndex)
+        public static List<Action> getActionsPruned(Board board, int playerIndex, AI ai)
         {
             List<Action> unexploredActions = new List<Action>();
             byte[] pieces = board.getPiecePos()[playerIndex];
@@ -59,7 +59,7 @@ namespace ChineseCheckers
                     Action a = new Action(fromI, fromJ, toI, toJ);
                     // we will sort actions based on their score, so that we
                     // can perform k-best pruning
-                    a.score = Board.score(a, playerIndex);
+                    a.score = ai.score(a, playerIndex);
                     unexploredActions.Add(a);
                 }
             }

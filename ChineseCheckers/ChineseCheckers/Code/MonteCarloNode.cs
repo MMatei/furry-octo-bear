@@ -15,6 +15,7 @@ namespace ChineseCheckers
         private static Random rand = new Random();
 
         public static int AIPlayerIndex;// the index of the AI player on whose behalf we are running this scheme
+        public static AI ai;
 
         private int playerIndex;
         private MonteCarloNode parent;
@@ -37,7 +38,7 @@ namespace ChineseCheckers
             // luam in calcul doar cele mai bune beta actiuni, pt a elimina din noduri
             // (factor de ramificare imens + viteza mica de explorare == dezastru)
             if (!board.hasWon(playerIndex))
-                unexploredActions = Action.getActionsPruned(board, playerIndex);
+                unexploredActions = Action.getActionsPruned(board, playerIndex, ai);
             else
             {
                 unexploredActions = new List<Action>();
@@ -114,7 +115,7 @@ namespace ChineseCheckers
                     int score = -100;
                     foreach (Action a in moves)
                     {
-                        int h = Board.score(a, pi);
+                        int h = ai.score(a, pi);
                         if (h > score)
                         {
                             score = h;

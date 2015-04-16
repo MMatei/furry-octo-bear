@@ -33,8 +33,7 @@ namespace ChineseCheckers
         public static int numPlayers;
         private int crtPlayer = 0;
         private String[] playerText; // text representing the six players
-        private bool[] isAI; // is the player AI or human
-        private AI ai;
+        internal static AI[] isAI; // is the player human (null) or AI (which type)
 
         private int state = STATE_RUNNING; // the game state, one of the following:
         private const int STATE_RUNNING = 2;
@@ -95,7 +94,6 @@ namespace ChineseCheckers
             Board.initTempBoard();
             board = new Board(numPlayers);
             PiecesDraw.createPieceRectangles(board.getPiecePos(), numPlayers);
-            ai = AI.startAIThread();
         }
 
         /// <summary>
@@ -104,7 +102,9 @@ namespace ChineseCheckers
         /// </summary>
         protected override void UnloadContent()
         {
-            ai.stop();
+            for (int i = 0; i < numPlayers; i++)
+                if (isAI[i] != null)
+                    isAI[i].stop();
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace ChineseCheckers
 
             if (PiecesDraw.isAnimationDone())
             {
-                if (!isAI[crtPlayer])
+                if (isAI[crtPlayer] == null)
                 {
                     // -- HUMAN CONTROLS ---
                     // adjust mouse position to board space
@@ -161,9 +161,9 @@ namespace ChineseCheckers
                                         // Current player moved -> go to next player
                                         checkForVictory();
                                         int nextPlayer = (crtPlayer + 1) % numPlayers;
-                                        if(isAI[nextPlayer])
+                                        if(isAI[nextPlayer] != null) // non - human
                                             // while animation is playing, think
-                                            ai.think(board, nextPlayer);
+                                            isAI[nextPlayer].think(board, nextPlayer);
                                         break;
                                     }
                                 }
@@ -205,10 +205,10 @@ namespace ChineseCheckers
                 }
                 else
                 {
-                    if (ai.thinking == 2) // thinking is done on a separate thread
+                    if (AI.thinking == 2) // thinking is done on a separate thread
                     {
-                        ai.thinking = 0;
-                        Board nextBoard = ai.board;
+                        AI.thinking = 0;
+                        Board nextBoard = AI.board;
                         Action a = nextBoard.deduceAction(board);
                         LinkedList<int> path = board.getPath(a.fromI, a.fromJ, a.toI, a.toJ);
                         // start animation
@@ -216,12 +216,12 @@ namespace ChineseCheckers
                         board = nextBoard;
                         checkForVictory();
                         int nextPlayer = (crtPlayer + 1) % numPlayers;
-                        if (isAI[nextPlayer])
+                        if (isAI[nextPlayer] != null)
                             // while animation is playing, think
-                            ai.think(board, nextPlayer);
+                            isAI[nextPlayer].think(board, nextPlayer);
                     }
-                    else if(ai.thinking == 0)
-                        ai.think(board, crtPlayer);
+                    else if (AI.thinking == 0)
+                        isAI[crtPlayer].think(board, crtPlayer);
                 }
             }
             else
@@ -283,11 +283,26 @@ namespace ChineseCheckers
             System.IO.StreamReader file = new System.IO.StreamReader("config.txt");
             numPlayers = Convert.ToInt32(file.ReadLine());
             String s = file.ReadLine();
-            String[] bools = s.Split(' ');
-            isAI = new bool[numPlayers];
+            String[] ints = s.Split(' ');
+            isAI = new AI[numPlayers];
             for (int i = 0; i < numPlayers; i++)
-                isAI[i] = Convert.ToBoolean(bools[i]);
+            {
+                int AItype = Convert.ToInt32(ints[i]);
+                Console.WriteLine(AItype);
+                switch (AItype)
+                {
+                    case 1: isAI[i] = new AI();
+                        Console.WriteLine(isAI[i] == null);
+                        break;
+                    case 2: isAI[i] = new AmericanAI();
+                        Console.WriteLine(isAI[i] == null);
+                        break;
+                    default: isAI[i] = null;
+                        break;
+                }
+            }
             file.Close();
+            AI.startAIThread();
         }
 
         // to be used by PiecesDraw, when animation is done

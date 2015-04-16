@@ -6,36 +6,38 @@ using System.Threading;
 
 namespace ChineseCheckers
 {
+    /// <summary>
+    /// This is the base AI class. Extend this for fancier functionality.
+    /// The least one ought to overwrite is the score function (== the heuristic used for actions).
+    /// </summary>
     class AI
     {
-        // 1 second thinking time
         private const long THINK_TIME = 3000;
         private static Thread thread;
 
-        public int thinking = 0; // 0 - not thinking, 1 - thinking, 2 - done thinking
+        public static int thinking = 0; // 0 - not thinking, 1 - thinking, 2 - done thinking
         // when 0 is set, the input is stored in board
         // when 2 is set, the result is stored in board
-        public Board board;
-        public int playerIndex;
+        public static Board board;
+        public static int playerIndex;
 
-        public static AI startAIThread()
+        public static void startAIThread()
         {
             if (thread != null) // prevent multiple call
-                return null;
-            AI ai = new AI();
-            thread = new Thread(new ThreadStart(ai.execute));
+                return;
+            thread = new Thread(new ThreadStart(AI.execute));
             thread.Start();
-            return ai;
         }
 
-        private static long currentTimeMillis()
+        protected static long currentTimeMillis()
         {
             return DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
         }
     
-        private Board getAIMove()
+        protected Board getAIMove()
         {
             MonteCarloNode.AIPlayerIndex = playerIndex;
+            MonteCarloNode.ai = this;
             // initialize Monte Carlo Tree
             // the root must be the previous player, so that its children
             //  represent the actions of the current player
@@ -60,24 +62,36 @@ namespace ChineseCheckers
             return tree.getBestResult();
         }
 
+        /// <summary>
+        /// Computes the score of a given action. This score is the distance I've covered
+        /// towards my end goal.
+        /// </summary>
+        public virtual int score(Action a, int playerIndex)
+        {
+            int pi_2 = playerIndex + playerIndex;
+            return Board.h(a.fromI, a.fromJ, playerGoal[pi_2], playerGoal[pi_2 + 1]) -
+                Board.h(a.toI, a.toJ, playerGoal[pi_2], playerGoal[pi_2 + 1]);
+        }
+        protected static int[] playerGoal = { 16, 6, 0, 6, 12, 12, 4, 0, 12, 0, 4, 12 };
+
         public void think(Board board, int playerIndex)
         {
-            this.board = board;
-            this.playerIndex = playerIndex;
+            AI.board = board;
+            AI.playerIndex = playerIndex;
             thinking = 1;
-            lock (this) {
-                Monitor.Pulse(this);// wake up the thread
+            lock (thread) {
+                Monitor.Pulse(thread);// wake up the thread
             }
         }
 
-        private void execute()
+        private static void execute()
         {
             while (true)
             {
-                lock (this) {
-                    Monitor.Wait(this);// sleep until work is available
+                lock (thread) {
+                    Monitor.Wait(thread);// sleep until work is available
                 }
-                board = getAIMove();
+                board = Game1.isAI[playerIndex].getAIMove();
                 thinking = 2;
             }
         }

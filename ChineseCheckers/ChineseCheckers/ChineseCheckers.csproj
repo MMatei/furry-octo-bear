@@ -109,6 +109,7 @@
   <ItemGroup>
     <Compile Include="Code\Action.cs" />
     <Compile Include="Code\AI.cs" />
+    <Compile Include="Code\AmericanAI.cs" />
     <Compile Include="Code\Board.cs" />
     <Compile Include="Code\MonteCarloNode.cs" />
     <Compile Include="Code\PiecesDraw.cs" />

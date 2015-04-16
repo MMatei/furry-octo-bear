@@ -408,9 +408,8 @@ namespace ChineseCheckers
         /// If strictly measuring jump distance, divide this by two (so that the
         /// heuristic is admissible, meaning optimistic)
         /// </summary>
-        private static int h(int fromI, int fromJ, int toI, int toJ)
+        internal static int h(int fromI, int fromJ, int toI, int toJ)
         {
-            //return Math.Max(Math.Abs(toI - fromI), Math.Abs(toJ - fromJ));
             return (int)Math.Sqrt(Math.Pow(toI - fromI, 2) + Math.Pow(toJ - fromJ, 2));
         }
 
@@ -523,18 +522,6 @@ namespace ChineseCheckers
             }
             return a;
         }
-
-        /// <summary>
-        /// Computes the score of a given action. This score is the distance I've covered
-        /// towards my end goal.
-        /// </summary>
-        public static int score(Action a, int playerIndex)
-        {
-            int pi_2 = playerIndex + playerIndex;
-            return h(a.fromI, a.fromJ, playerGoal[pi_2], playerGoal[pi_2 + 1]) -
-                h(a.toI, a.toJ, playerGoal[pi_2], playerGoal[pi_2 + 1]);
-        }
-        private static int[] playerGoal = { 16, 6, 0, 6, 12, 12, 4, 0, 12, 0, 4, 12};
 
         /// <summary>
         /// Returns true if the player sent as argument won the game. (all of his pieces are
