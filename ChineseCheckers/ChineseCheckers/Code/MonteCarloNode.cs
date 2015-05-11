@@ -8,25 +8,25 @@ namespace ChineseCheckers
     class MonteCarloNode
     {
         // constanta de explorare
-        private static double C = Math.Sqrt(2);
+        protected static double C = Math.Sqrt(2);
         // epsilon - the percentage chance we select a random move in playout
         // it is, in fact, indispensible in the good functioning of a playout
-        private static double eps = 5;
-        private static Random rand = new Random();
+        protected static double eps = 5;
+        protected static Random rand = new Random();
 
         public static int AIPlayerIndex;// the index of the AI player on whose behalf we are running this scheme
         public static AI ai;
 
-        private int playerIndex;
-        private MonteCarloNode parent;
-        private Board board; // starea jocului la momentul reprezentat de acest nod
-        private LinkedList<MonteCarloNode> children;
-        private List<Action> unexploredActions;
-        private int victories = 0; // numarul de jocuri castigate pornind din acest nod
-        private int totalGames = 0; // numarul de jocuri jucate porinind din acest nod
-        private int timesVisited = 1;// numarul de vizitari ale nodului
+        protected int playerIndex;
+        protected MonteCarloNode parent;
+        protected Board board; // starea jocului la momentul reprezentat de acest nod
+        protected LinkedList<MonteCarloNode> children;
+        protected List<Action> unexploredActions;
+        protected int victories = 0; // numarul de jocuri castigate pornind din acest nod
+        protected int totalGames = 0; // numarul de jocuri jucate porinind din acest nod
+        protected int timesVisited = 1;// numarul de vizitari ale nodului
 
-        public MonteCarloNode(Board _board, MonteCarloNode _parent, int parentPlayerIndex)
+        public MonteCarloNode(Board _board, MonteCarloNode _parent, int parentPlayerIndex, bool debug)
         {
             board = _board;
             parent = _parent;
@@ -57,11 +57,14 @@ namespace ChineseCheckers
                     }
                 }
             }
+            if (debug)
+                foreach(Action a in unexploredActions)
+                    Console.WriteLine(a);
         }
 
         // this function must be called on the root of the Monte Carlo Tree
         // it returns the most promising node to be explored
-        public MonteCarloNode select()
+        public virtual MonteCarloNode select()
         {
             MonteCarloNode node = this;
             // intoarcem primul nod care are copii neexplorati
@@ -88,19 +91,19 @@ namespace ChineseCheckers
         }
 
         // expand the first action in unexploredActions into a child node
-        public MonteCarloNode expand()
+        public virtual MonteCarloNode expand()
         {
             Action a = unexploredActions[0];
             unexploredActions.RemoveAt(0);
             Board newBoard = new Board(board); // the new node represents a new board
             newBoard.movePiece(a.fromI, a.fromJ, a.toI, a.toJ, playerIndex); // with an action taken
-            MonteCarloNode child = new MonteCarloNode(newBoard, this, playerIndex);
+            MonteCarloNode child = new MonteCarloNode(newBoard, this, playerIndex, false);
             children.AddLast(child);
             return child;
         }
 
         // play the game starting from this node, and return true if the game was won
-        public bool playout()
+        public virtual bool playout()
         {
             Board testBoard = new Board(board);
             int pi = playerIndex;
@@ -155,11 +158,13 @@ namespace ChineseCheckers
             foreach(MonteCarloNode child in children) {
                 double score = child.victories;
                 score /= child.totalGames;
+                Console.WriteLine(child.victories+" "+child.totalGames+" "+score);
                 if (score > maxScore) {
                     maxScore = score;
                     mostPromising = child;
                 }
             }
+            Console.WriteLine();
             return mostPromising.board;
         }
     }

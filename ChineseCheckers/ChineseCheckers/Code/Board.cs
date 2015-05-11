@@ -412,6 +412,34 @@ namespace ChineseCheckers
         {
             return (int)Math.Sqrt(Math.Pow(toI - fromI, 2) + Math.Pow(toJ - fromJ, 2));
         }
+        // contorizeaza trecerile de la ocupat la liber in vecinatatea piesei
+        // daca sunt 2 tranzitii sau mai mult, mutarea piesei ar duce la stricarea continuitatii
+        internal int continuity(int pieceI, int pieceJ, int pi)
+        {
+            int crrtPlayer = 1 << pi;
+            int imod2 = (pieceI + 1) % 2;
+            int treceri = 0;
+            int x, y, x2, y2;
+            x = pieceI + dirDiff[imod2][10];
+            y = pieceJ + dirDiff[imod2][11];
+            for (int k = 0; k < 6; k++)
+            {
+                int dir_x_2 = k + k;
+                x2 = pieceI + dirDiff[imod2][dir_x_2];
+                y2 = pieceJ + dirDiff[imod2][dir_x_2 + 1];
+                if (x < 0 || x > 16 || y < 0 || y > 13) continue;
+                if (x2 < 0 || x2 > 16 || y2 < 0 || y2 > 13) continue;
+                if (board[x][y] == crrtPlayer && board[x2][y2] != crrtPlayer)
+                {
+                    treceri++;
+                }
+                x = x2;
+                y = y2;
+            }
+            if (treceri > 1)
+                return -100;
+            return 0;
+        }
 
         /// <summary>
         /// Make an A* search to get the path of jumps between two points on the board.

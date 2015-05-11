@@ -7,8 +7,6 @@ namespace ChineseCheckers
 {
     class Action
     {
-        private const int k = 5; // k-best pruning
-
         public int fromI, fromJ, toI, toJ;
         public int score; // optional - used for k-best pruning
         public Action(int _fromI, int _fromJ, int _toI, int _toJ)
@@ -35,6 +33,7 @@ namespace ChineseCheckers
                     int toJ = validMoves.First.Value;
                     validMoves.RemoveFirst();
                     Action a = new Action(fromI, fromJ, toI, toJ);
+                    if (a.score >= 0)
                     unexploredActions.Add(a);
                 }
             }
@@ -50,6 +49,7 @@ namespace ChineseCheckers
                 int fromI = pieces[i];
                 int fromJ = pieces[i + 1];
                 LinkedList<int> validMoves = board.getValidMoves(fromI, fromJ);
+                int c = board.continuity(fromI, fromJ, playerIndex);
                 while (validMoves.Count > 0)
                 {
                     int toI = validMoves.First.Value;
@@ -59,14 +59,15 @@ namespace ChineseCheckers
                     Action a = new Action(fromI, fromJ, toI, toJ);
                     // we will sort actions based on their score, so that we
                     // can perform k-best pruning
-                    a.score = ai.score(a, playerIndex);
+                    a.score = ai.score(a, playerIndex) + c;
+                    //if(a.score > 0)
                     unexploredActions.Add(a);
                 }
             }
             unexploredActions.Sort(new Comparator());
-            int count = unexploredActions.Count - k;
+            int count = unexploredActions.Count - ai.k;
             if (count > 0 /*&& unexploredActions[0].score > 0*/)
-                unexploredActions.RemoveRange(k, count);
+                unexploredActions.RemoveRange(ai.k, count);
             return unexploredActions;
         }
 

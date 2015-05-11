@@ -12,6 +12,7 @@ namespace ChineseCheckers
     /// </summary>
     class AI
     {
+        public int k = 5; // for k-best pruning
         private const long THINK_TIME = 3000;
         private static Thread thread;
 
@@ -34,7 +35,7 @@ namespace ChineseCheckers
             return DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
         }
     
-        protected Board getAIMove()
+        protected virtual Board getAIMove()
         {
             MonteCarloNode.AIPlayerIndex = playerIndex;
             MonteCarloNode.ai = this;
@@ -42,13 +43,14 @@ namespace ChineseCheckers
             // the root must be the previous player, so that its children
             //  represent the actions of the current player
             playerIndex = playerIndex == 0 ? (Game1.numPlayers - 1) : (playerIndex - 1);
-            MonteCarloNode tree = new MonteCarloNode(board, null, playerIndex);
+            MonteCarloNode tree = new MonteCarloNode(board, null, playerIndex, true);
             // we are going to run the MCTS algorithm until it either stops
             //  (it has reached a final state)
             // or until a time limit has expired
             long stopTime = currentTimeMillis() + THINK_TIME;
             long nodesExplored = 0;
-            while(currentTimeMillis() < stopTime) {
+            while (/*currentTimeMillis() < stopTime*/ nodesExplored < 10000)
+            {
                 MonteCarloNode nodeToExpand = tree.select();
                 if(nodeToExpand == null){
                     Console.WriteLine("node to expand is null");
@@ -71,6 +73,10 @@ namespace ChineseCheckers
             int pi_2 = playerIndex + playerIndex;
             return Board.h(a.fromI, a.fromJ, playerGoal[pi_2], playerGoal[pi_2 + 1]) -
                 Board.h(a.toI, a.toJ, playerGoal[pi_2], playerGoal[pi_2 + 1]);
+        }
+        public virtual int score(int i, int j, int pi_2)
+        {
+            return Board.h(i, j, playerGoal[pi_2], playerGoal[pi_2 + 1]);
         }
         protected static int[] playerGoal = { 16, 6, 0, 6, 12, 12, 4, 0, 12, 0, 4, 12 };
 

@@ -112,6 +112,8 @@
     <Compile Include="Code\AmericanAI.cs" />
     <Compile Include="Code\Board.cs" />
     <Compile Include="Code\MonteCarloNode.cs" />
+    <Compile Include="Code\MonteCarloNode2ply.cs" />
+    <Compile Include="Code\MonteCarloNodeEval.cs" />
     <Compile Include="Code\PiecesDraw.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
