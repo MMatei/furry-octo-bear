@@ -411,6 +411,8 @@ namespace ChineseCheckers
         internal static int h(int fromI, int fromJ, int toI, int toJ)
         {
             return (int)Math.Sqrt(Math.Pow(toI - fromI, 2) + Math.Pow(toJ - fromJ, 2));
+            // This needs some revision, but the option below worsens the issue...
+            //return (int)Math.Round(Math.Sqrt(Math.Pow(toI - fromI, 2) + Math.Pow(toJ - fromJ, 2)));
         }
         // contorizeaza trecerile de la ocupat la liber in vecinatatea piesei
         // daca sunt 2 tranzitii sau mai mult, mutarea piesei ar duce la stricarea continuitatii
@@ -427,8 +429,8 @@ namespace ChineseCheckers
                 int dir_x_2 = k + k;
                 x2 = pieceI + dirDiff[imod2][dir_x_2];
                 y2 = pieceJ + dirDiff[imod2][dir_x_2 + 1];
-                if (x < 0 || x > 16 || y < 0 || y > 13) continue;
-                if (x2 < 0 || x2 > 16 || y2 < 0 || y2 > 13) continue;
+                if (x < 0 || x > 16 || y < 0 || y > 12) continue;
+                if (x2 < 0 || x2 > 16 || y2 < 0 || y2 > 12) continue;
                 if (board[x][y] == crrtPlayer && board[x2][y2] != crrtPlayer)
                 {
                     treceri++;

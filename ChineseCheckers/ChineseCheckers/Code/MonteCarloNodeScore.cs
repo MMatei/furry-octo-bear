@@ -5,19 +5,19 @@ using System.Text;
 
 namespace ChineseCheckers
 {
-    class MonteCarloNodeEval : MonteCarloNode
+    class MonteCarloNodeScore : MonteCarloNode
     {
-        public MonteCarloNodeEval(Board _board, MonteCarloNode _parent, int parentPlayerIndex, bool debug) :
+        public MonteCarloNodeScore(Board _board, MonteCarloNodeScore _parent, int parentPlayerIndex, bool debug) :
             base(_board, _parent, parentPlayerIndex, debug)
         {
-            eps = 0;
+            eps = 10;
         }
 
         // this function must be called on the root of the Monte Carlo Tree
         // it returns the most promising node to be explored
         public override MonteCarloNode select()
         {
-            MonteCarloNodeEval node = this;
+            MonteCarloNodeScore node = this;
             // intoarcem primul nod care are copii neexplorati
             // daca dam peste un nod terminal, functia intoarce null
             // in idea ca in acel moment incheiem parcurgerea arborelui
@@ -26,8 +26,8 @@ namespace ChineseCheckers
             {
                 // selectam cel mai promitator copil
                 double maxScore = -1;
-                MonteCarloNodeEval mostPromising = null;
-                foreach (MonteCarloNodeEval child in node.children)
+                MonteCarloNodeScore mostPromising = null;
+                foreach (MonteCarloNodeScore child in node.children)
                 {
                     double score = child.victories;
                     score /= child.totalGames;
@@ -51,7 +51,7 @@ namespace ChineseCheckers
             unexploredActions.RemoveAt(0);
             Board newBoard = new Board(board); // the new node represents a new board
             newBoard.movePiece(a.fromI, a.fromJ, a.toI, a.toJ, playerIndex); // with an action taken
-            MonteCarloNodeEval child = new MonteCarloNodeEval(newBoard, this, playerIndex, false);
+            MonteCarloNodeScore child = new MonteCarloNodeScore(newBoard, this, playerIndex, false);
             children.AddLast(child);
             return child;
         }
@@ -70,27 +70,12 @@ namespace ChineseCheckers
                 // of the board to determine the winner
                 if (turns == 0)
                 {
-                    /*byte[][] piecePos = testBoard.getPiecePos();
-                    int winner = 0, winnerScore = 9999; // smaller score is better
-                    for (int i = 0; i < Game1.numPlayers; i++)
-                    {
-                        int score = 0;
-                        int pi_2 = i + i;
-                        for (int k = 0; k < 10; k++)
-                            score += ai.score(piecePos[i][k + k], piecePos[i][k + k + 1], pi_2);
-                        if (score < winnerScore)
-                        {
-                            winner = i;
-                            winnerScore = score;
-                        }
-                    }
-                    return winner == playerIndex;*/
-                    //Console.WriteLine("!"+accScore[0]+" "+accScore[1]);
-                    int max = 0; // estimate the winner to be the player with max score accumulated
-                    for (int i = 1; i < Game1.numPlayers; i++)
-                        if (accScore[max] < accScore[i])
-                            max = i;
-                    return Convert.ToInt32(max == AIPlayerIndex);
+                    //int max = 0; // estimate the winner to be the player with max score accumulated
+                    //for (int i = 1; i < Game1.numPlayers; i++)
+                    //    if (accScore[max] < accScore[i])
+                    //        max = i;
+                    // TODO: for more than 2 players
+                    return accScore[playerIndex] - accScore[(playerIndex + 1)%2];
                 }
                 List<Action> moves = Action.getActions(testBoard, pi);
                 Action bestMove = null;
@@ -115,7 +100,59 @@ namespace ChineseCheckers
                 pi = (pi + 1) % Game1.numPlayers;// each player moves in turn
                 turns--;
             }
-            return Convert.ToInt32(testBoard.hasWon(AIPlayerIndex));
+            if (testBoard.hasWon(playerIndex))
+            {
+                //Console.WriteLine(accScore[playerIndex] - accScore[(playerIndex + 1) % 2]);
+                return 100;
+            }
+            return -100;
+        }
+
+        // called on the node on which we made the playout
+        // we will increment the nr of total games and victories for parent nodes
+        public override void backpropagation(int score)
+        {
+            MonteCarloNode node = this;
+            totalGames = score;
+            while (node.parent != null)
+            {
+                node = node.parent;
+                if(node.playerIndex != playerIndex)
+                { // opponent seeks to minimise our gain
+                    int min = 99999;
+                    foreach (MonteCarloNode n in node.children)
+                        if (min > n.totalGames)
+                            min = n.totalGames;
+                    node.totalGames = min;
+                }
+                else
+                { // we seek to maximise our gain
+                    int max = -99999;
+                    foreach (MonteCarloNode n in node.children)
+                        if (max < n.totalGames)
+                            max = n.totalGames;
+                    node.totalGames = max;
+                }
+            }
+        }
+
+        // called on the root of the tree; it will return the board of the most
+        // promising child
+        public override Board getBestResult()
+        {
+            double maxScore = -10000;
+            MonteCarloNode mostPromising = null;
+            foreach (MonteCarloNode child in children)
+            {
+                Console.WriteLine(child.totalGames);
+                if (child.totalGames > maxScore)
+                {
+                    maxScore = child.totalGames;
+                    mostPromising = child;
+                }
+            }
+            Console.WriteLine();
+            return mostPromising.board;
         }
     }
 }

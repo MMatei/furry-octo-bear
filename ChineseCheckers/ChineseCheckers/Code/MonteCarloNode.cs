@@ -17,14 +17,14 @@ namespace ChineseCheckers
         public static int AIPlayerIndex;// the index of the AI player on whose behalf we are running this scheme
         public static AI ai;
 
-        protected int playerIndex;
-        protected MonteCarloNode parent;
-        protected Board board; // starea jocului la momentul reprezentat de acest nod
-        protected LinkedList<MonteCarloNode> children;
-        protected List<Action> unexploredActions;
-        protected int victories = 0; // numarul de jocuri castigate pornind din acest nod
-        protected int totalGames = 0; // numarul de jocuri jucate porinind din acest nod
-        protected int timesVisited = 1;// numarul de vizitari ale nodului
+        internal int playerIndex;
+        internal MonteCarloNode parent;
+        internal Board board; // starea jocului la momentul reprezentat de acest nod
+        internal LinkedList<MonteCarloNode> children;
+        internal List<Action> unexploredActions;
+        internal int victories = 0; // numarul de jocuri castigate pornind din acest nod
+        internal int totalGames = 0; // numarul de jocuri jucate porinind din acest nod
+        internal int timesVisited = 1;// numarul de vizitari ale nodului
 
         public MonteCarloNode(Board _board, MonteCarloNode _parent, int parentPlayerIndex, bool debug)
         {
@@ -103,7 +103,7 @@ namespace ChineseCheckers
         }
 
         // play the game starting from this node, and return true if the game was won
-        public virtual bool playout()
+        public virtual int playout()
         {
             Board testBoard = new Board(board);
             int pi = playerIndex;
@@ -129,29 +129,27 @@ namespace ChineseCheckers
                 testBoard.movePiece(bestMove.fromI, bestMove.fromJ, bestMove.toI, bestMove.toJ, pi);
                 pi = (pi + 1) % Game1.numPlayers;// each player moves in turn
             }
-            return testBoard.hasWon(playerIndex);
+            return Convert.ToInt32(testBoard.hasWon(AIPlayerIndex));
         }
 
         // called on the node on which we made the playout
         // we will increment the nr of total games and victories for parent nodes
-        public void backpropagation(bool victory)
+        public virtual void backpropagation(int victory)
         {
             MonteCarloNode node = this;
             totalGames = 1;
-            if (victory)
-                victories = 1;
+            victories = victory;
             while (node.parent != null)
             {
                 node.parent.totalGames++;
-                if (victory)
-                    node.parent.victories++;
+                node.parent.victories += victory;
                 node = node.parent;
             }
         }
 
         // called on the root of the tree; it will return the board of the most
         // promising child
-        public Board getBestResult()
+        public virtual Board getBestResult()
         {
             double maxScore = -1;
             MonteCarloNode mostPromising = null;

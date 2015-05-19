@@ -13,7 +13,7 @@ namespace ChineseCheckers
     class AI
     {
         public int k = 5; // for k-best pruning
-        private const long THINK_TIME = 3000;
+        private const long THINK_TIME = 10000;
         private static Thread thread;
 
         public static int thinking = 0; // 0 - not thinking, 1 - thinking, 2 - done thinking
@@ -49,7 +49,7 @@ namespace ChineseCheckers
             // or until a time limit has expired
             long stopTime = currentTimeMillis() + THINK_TIME;
             long nodesExplored = 0;
-            while (/*currentTimeMillis() < stopTime*/ nodesExplored < 10000)
+            while (currentTimeMillis() < stopTime)
             {
                 MonteCarloNode nodeToExpand = tree.select();
                 if(nodeToExpand == null){
@@ -102,7 +102,7 @@ namespace ChineseCheckers
             }
         }
 
-        public void stop()
+        public static void stop()
         {
             thread.Abort();
         }

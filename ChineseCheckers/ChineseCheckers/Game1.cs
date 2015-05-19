@@ -53,6 +53,7 @@ namespace ChineseCheckers
             // we need it to translate mouse position from screen space to board space
             widthRatio = (818 / (double)screenRect.Width);
             heightRatio = (916 / (double)screenRect.Height);
+            Console.WriteLine(Board.h(8, 2, 0, 6) + " " + Board.h(7, 2, 0, 6));
         }
 
         /// <summary>
@@ -102,9 +103,7 @@ namespace ChineseCheckers
         /// </summary>
         protected override void UnloadContent()
         {
-            for (int i = 0; i < numPlayers; i++)
-                if (isAI[i] != null)
-                    isAI[i].stop();
+            AI.stop();
         }
 
         /// <summary>
@@ -294,7 +293,7 @@ namespace ChineseCheckers
                     case 1: isAI[i] = new AI();
                         Console.WriteLine(isAI[i] == null);
                         break;
-                    case 2: isAI[i] = new AmericanAI();
+                    case 2: isAI[i] = new OtherAI();
                         Console.WriteLine(isAI[i] == null);
                         break;
                     default: isAI[i] = null;
