@@ -5,17 +5,56 @@ using System.Text;
 
 namespace ChineseCheckers
 {
-    class MonteCarloNodeScore : MonteCarloNode
+    class MonteCarloNodeScore
     {
-        public MonteCarloNodeScore(Board _board, MonteCarloNodeScore _parent, int parentPlayerIndex, bool debug) :
-            base(_board, _parent, parentPlayerIndex, debug)
+        // constanta de explorare
+        protected static double C = Math.Sqrt(2);
+        // epsilon - the percentage chance we select a random move in playout
+        // it is, in fact, indispensible in the good functioning of a playout
+        protected static double eps = 0;
+        protected static Random rand = new Random();
+
+        public static int AIPlayerIndex;// the index of the AI player on whose behalf we are running this scheme
+        public static AI ai;
+
+        internal int playerIndex;
+        internal MonteCarloNodeScore parent;
+        internal Board board; // starea jocului la momentul reprezentat de acest nod
+        internal LinkedList<MonteCarloNodeScore> children;
+        internal List<Action> unexploredActions;
+        internal int[] score;
+        internal int timesVisited = 1;
+
+        public MonteCarloNodeScore(Board _board, MonteCarloNodeScore _parent, int parentPlayerIndex, bool debug)
         {
-            eps = 10;
+            score = new int[Game1.numPlayers];
+            board = _board;
+            parent = _parent;
+            // nodul fiu va reprezenta mutarile jucatorului urmator
+            playerIndex = (parentPlayerIndex + 1) % Game1.numPlayers;
+            children = new LinkedList<MonteCarloNodeScore>();
+            // Daca jucatorul curent a castigat jocul, nodul este terminal (n-avem ce explora mai departe)
+            // altfel, detaliem actiunile posibile pt jucatorul curent => noduri copil posibile
+            // luam in calcul doar cele mai bune beta actiuni, pt a elimina din noduri
+            // (factor de ramificare imens + viteza mica de explorare == dezastru)
+            if (!board.hasWon(playerIndex))
+                unexploredActions = Action.getActionsPruned(board, playerIndex, ai);
+            else
+            {
+                unexploredActions = new List<Action>();
+                for (int i = 0; i < Game1.numPlayers; i++)
+                    score[i] = -100;
+                score[playerIndex] = 100;
+                backpropagation();
+            }
+            if (debug)
+                foreach (Action a in unexploredActions)
+                    Console.WriteLine(a);
         }
 
         // this function must be called on the root of the Monte Carlo Tree
         // it returns the most promising node to be explored
-        public override MonteCarloNode select()
+        public MonteCarloNodeScore select()
         {
             MonteCarloNodeScore node = this;
             // intoarcem primul nod care are copii neexplorati
@@ -25,12 +64,16 @@ namespace ChineseCheckers
             while (node != null && node.unexploredActions.Count == 0)
             {
                 // selectam cel mai promitator copil
-                double maxScore = -1;
+                double maxScore = -9999;
                 MonteCarloNodeScore mostPromising = null;
                 foreach (MonteCarloNodeScore child in node.children)
                 {
-                    double score = child.victories;
-                    score /= child.totalGames;
+                    // urmarim aceasi logica ca la backpropagation, urmarind mutarea
+                    // cea mai avantajoasa pt player-ul curent
+                    // (reprezentat de player index-ul copilulului;
+                    // remember: nodul copacului reprezinta jucatorul precedent)
+                    double score = this.score[child.playerIndex];
+                    // the exploration component should perhaps be revised?
                     score += C * Math.Sqrt(Math.Log(node.timesVisited) / child.timesVisited);
                     if (score > maxScore)
                     {
@@ -45,7 +88,7 @@ namespace ChineseCheckers
         }
 
         // expand the first action in unexploredActions into a child node
-        public override MonteCarloNode expand()
+        public MonteCarloNodeScore expand()
         {
             Action a = unexploredActions[0];
             unexploredActions.RemoveAt(0);
@@ -56,98 +99,91 @@ namespace ChineseCheckers
             return child;
         }
 
-        private int[] accScore = new int[Game1.numPlayers]; // static alloc to save some time in playout
-        public override int playout()
+        public void playout()
         {
             Board testBoard = new Board(board);
             int pi = playerIndex;
             int turns = Game1.numPlayers * 5; // 5 turns per player
             for (int i = 0; i < Game1.numPlayers; i++)
-                accScore[i] = 0;
+                score[i] = 0;
             while (!testBoard.hasWon(pi))
             {
-                // play only for a limited time; when that time expires, make a quick evaluation
-                // of the board to determine the winner
                 if (turns == 0)
+                    return;
+                List<Action> moves = Action.getActions(testBoard, pi, ai);
+                if (moves.Count == 0)
                 {
-                    //int max = 0; // estimate the winner to be the player with max score accumulated
-                    //for (int i = 1; i < Game1.numPlayers; i++)
-                    //    if (accScore[max] < accScore[i])
-                    //        max = i;
-                    // TODO: for more than 2 players
-                    return accScore[playerIndex] - accScore[(playerIndex + 1)%2];
+                    score[pi] = -100;
+                    return; // loss
                 }
-                List<Action> moves = Action.getActions(testBoard, pi);
                 Action bestMove = null;
                 int r = rand.Next(101); // there's a chance to choose a random action
                 if (r < eps) // we do this to spice things up and avoid local optima
                     bestMove = moves[rand.Next(moves.Count)];
                 else
                 { // choose the move with the longest path
-                    int score = -100;
+                    int bestScore = -100;
                     foreach (Action a in moves)
                     {
-                        int h = ai.score(a, pi);
-                        if (h > score)
+                        if (a.score > bestScore)
                         {
-                            score = h;
+                            bestScore = a.score;
                             bestMove = a;
                         }
                     }
                 }
                 testBoard.movePiece(bestMove.fromI, bestMove.fromJ, bestMove.toI, bestMove.toJ, pi);
-                accScore[pi] += ai.score(bestMove, pi); // keep track of the score each player racks
+                score[pi] += bestMove.score; // keep track of the score each player racks
                 pi = (pi + 1) % Game1.numPlayers;// each player moves in turn
                 turns--;
             }
-            if (testBoard.hasWon(playerIndex))
-            {
-                //Console.WriteLine(accScore[playerIndex] - accScore[(playerIndex + 1) % 2]);
-                return 100;
-            }
-            return -100;
+            // pi has won, adjust the scores accordingly
+            for (int i = 0; i < Game1.numPlayers; i++)
+                score[i] = -100;
+            score[pi] = 100;
         }
 
         // called on the node on which we made the playout
-        // we will increment the nr of total games and victories for parent nodes
-        public override void backpropagation(int score)
+        // we will adjust the score of our parents, to best reflect their interests
+        public void backpropagation()
         {
-            MonteCarloNode node = this;
-            totalGames = score;
-            while (node.parent != null)
+            MonteCarloNodeScore node = parent;
+            while (node != null)
             {
+                // we select from our children the score tuple that best
+                // serves our own interest
+                /*int maxScore = -9999;
+                MonteCarloNodeScore c = null;
+                foreach (MonteCarloNodeScore child in node.children)
+                {
+                    if (child.score[node.playerIndex] > maxScore)
+                    {
+                        maxScore = child.score[node.playerIndex];
+                        c = child;
+                    }
+                }
+                if (c == null)
+                    return;
+                for (int i = 0; i < Game1.numPlayers; i++)
+                    score[i] = c.score[i];*/
+                for (int i = 0; i < Game1.numPlayers; i++)
+                    node.score[i] += score[i];
                 node = node.parent;
-                if(node.playerIndex != playerIndex)
-                { // opponent seeks to minimise our gain
-                    int min = 99999;
-                    foreach (MonteCarloNode n in node.children)
-                        if (min > n.totalGames)
-                            min = n.totalGames;
-                    node.totalGames = min;
-                }
-                else
-                { // we seek to maximise our gain
-                    int max = -99999;
-                    foreach (MonteCarloNode n in node.children)
-                        if (max < n.totalGames)
-                            max = n.totalGames;
-                    node.totalGames = max;
-                }
             }
         }
 
         // called on the root of the tree; it will return the board of the most
         // promising child
-        public override Board getBestResult()
+        public Board getBestResult()
         {
             double maxScore = -10000;
-            MonteCarloNode mostPromising = null;
-            foreach (MonteCarloNode child in children)
+            MonteCarloNodeScore mostPromising = null;
+            foreach (MonteCarloNodeScore child in children)
             {
-                Console.WriteLine(child.totalGames);
-                if (child.totalGames > maxScore)
+                Console.Write(child.score[AIPlayerIndex]+" ");
+                if (child.score[AIPlayerIndex] > maxScore)
                 {
-                    maxScore = child.totalGames;
+                    maxScore = child.score[AIPlayerIndex];
                     mostPromising = child;
                 }
             }

@@ -89,15 +89,16 @@ namespace ChineseCheckers
                     {
                         int score = -100;
                         testBoard.movePiece(a.fromI, a.fromJ, a.toI, a.toJ, pi);
-                        List<Action> moves2 = Action.getActions(testBoard, pi);
+                        List<Action> moves2 = Action.getActions(testBoard, pi, ai);
+                        if (moves.Count == 0)
+                            return 0; // loss
                         foreach (Action aa in moves2)
                         {
-                            int h = ai.score(aa, piP1);
-                            if (h > score)
-                                score = h;
+                            if (aa.score > score)
+                                score = aa.score;
                         }
                         testBoard.movePiece(a.toI, a.toJ, a.fromI, a.fromJ, pi); // reverse move, to restore board
-                        score = ai.score(a, pi) - score;
+                        score = a.score - score;
                         if (score > maxScore)
                         {
                             maxScore = score;
@@ -106,7 +107,7 @@ namespace ChineseCheckers
                     }
                 }
                 testBoard.movePiece(bestMove.fromI, bestMove.fromJ, bestMove.toI, bestMove.toJ, pi);
-                accScore[pi] += ai.score(bestMove, pi); // keep track of the score each player racks
+                accScore[pi] += bestMove.score; // keep track of the score each player racks
                 pi = piP1;// each player moves in turn
                 turns--;
             }

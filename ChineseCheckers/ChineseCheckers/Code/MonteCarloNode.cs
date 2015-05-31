@@ -108,7 +108,9 @@ namespace ChineseCheckers
             Board testBoard = new Board(board);
             int pi = playerIndex;
             while(!testBoard.hasWon(pi)) {
-                List<Action> moves = Action.getActions(testBoard, pi);
+                List<Action> moves = Action.getActions(testBoard, pi, ai);
+                if (moves.Count == 0)
+                    return 0; // loss
                 Action bestMove = null;
                 int r = rand.Next(101); // there's a chance to choose a random action
                 if (r < eps) // we do this to spice things up and avoid local optima
@@ -118,10 +120,9 @@ namespace ChineseCheckers
                     int score = -100;
                     foreach (Action a in moves)
                     {
-                        int h = ai.score(a, pi);
-                        if (h > score)
+                        if (a.score > score)
                         {
-                            score = h;
+                            score = a.score;
                             bestMove = a;
                         }
                     }
