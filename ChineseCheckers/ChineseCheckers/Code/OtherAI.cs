@@ -13,7 +13,7 @@ namespace ChineseCheckers
             //k = 100;
         }
 
-        /*protected override Board getAIMove()
+        protected override Board getAIMove()
         {
             MonteCarloNodeScore.AIPlayerIndex = playerIndex;
             MonteCarloNodeScore.ai = this;
@@ -29,23 +29,24 @@ namespace ChineseCheckers
             long nodesExplored = 0;
             while (currentTimeMillis() < stopTime)
             {
-                MonteCarloNode nodeToExpand = tree.select();
+                MonteCarloNodeScore nodeToExpand = tree.select();
                 if (nodeToExpand == null)
                 {
                     Console.WriteLine("node to expand is null");
                     break;
                 }
                 nodeToExpand = nodeToExpand.expand();
-                nodeToExpand.backpropagation(nodeToExpand.playout());
+                nodeToExpand.playout();
+                nodeToExpand.backpropagation();
                 //nodeToExpand.backpropagation(nodeToExpand.playout()); // second playout does more harm
                 nodesExplored++;
             }
             Console.WriteLine("explored " + nodesExplored + " nodes ");
             //Console.WriteLine(currentTimeMillis() - stopTime);
             return tree.getBestResult();
-        }*/
+        }
 
-        protected override Board getAIMove()
+        /*protected override Board getAIMove()
         {
             MonteCarloNodeEval.AIPlayerIndex = playerIndex;
             MonteCarloNodeEval.ai = this;
@@ -75,7 +76,7 @@ namespace ChineseCheckers
             Console.WriteLine("explored " + nodesExplored + " nodes ");
             //Console.WriteLine(currentTimeMillis() - stopTime);
             return tree.getBestResult();
-        }
+        }*/
 
         /*protected override Board getAIMove()
         {

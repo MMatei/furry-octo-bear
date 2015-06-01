@@ -92,7 +92,7 @@ namespace ChineseCheckers
                             max = i;
                     return Convert.ToInt32(max == AIPlayerIndex);
                 }
-                List<Action> moves = Action.getActions(testBoard, pi);
+                List<Action> moves = Action.getActions(testBoard, pi, ai);
                 Action bestMove = null;
                 int r = rand.Next(101); // there's a chance to choose a random action
                 if (r < eps) // we do this to spice things up and avoid local optima
@@ -102,16 +102,15 @@ namespace ChineseCheckers
                     int score = -100;
                     foreach (Action a in moves)
                     {
-                        int h = ai.score(a, pi);
-                        if (h > score)
+                        if (a.score > score)
                         {
-                            score = h;
+                            score = a.score;
                             bestMove = a;
                         }
                     }
                 }
                 testBoard.movePiece(bestMove.fromI, bestMove.fromJ, bestMove.toI, bestMove.toJ, pi);
-                accScore[pi] += ai.score(bestMove, pi); // keep track of the score each player racks
+                accScore[pi] += bestMove.score; // keep track of the score each player racks
                 pi = (pi + 1) % Game1.numPlayers;// each player moves in turn
                 turns--;
             }

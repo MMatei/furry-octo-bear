@@ -18,7 +18,7 @@ namespace ChineseCheckers
             toJ = _toJ;
         }
 
-        public static List<Action> getActions(Board board, int playerIndex)
+        public static List<Action> getActions(Board board, int playerIndex, AI ai)
         {
             List<Action> unexploredActions = new List<Action>();
             byte[] pieces = board.getPiecePos()[playerIndex];
@@ -34,8 +34,13 @@ namespace ChineseCheckers
                     int toJ = validMoves.First.Value;
                     validMoves.RemoveFirst();
                     Action a = new Action(fromI, fromJ, toI, toJ);
-                    if (a.score >= 0)
-                    unexploredActions.Add(a);
+                    a.score = ai.score(a, playerIndex);
+                    // actions with a score lower than 0 are always useless
+                    // actions with score 0, while technically viable, can lead the AI
+                    // into a playout deadlock; to avoid this, we don't include them and
+                    // the playout is stopped when there are no further moves available
+                    if (a.score > 0)
+                        unexploredActions.Add(a);
                 }
             }
             return unexploredActions;
