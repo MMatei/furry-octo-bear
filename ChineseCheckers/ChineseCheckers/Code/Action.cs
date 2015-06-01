@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace ChineseCheckers
 {
@@ -82,6 +83,23 @@ namespace ChineseCheckers
         public override String ToString()
         {
             return "(" + fromI + "," + fromJ + ")->(" + toI + "," + toJ + ")";
+        }
+
+        public void toBinary(BinaryWriter writer)
+        {
+            writer.Write(fromI);
+            writer.Write(fromJ);
+            writer.Write(toI);
+            writer.Write(toJ);
+        }
+
+        public static Action fromBinary(BinaryReader reader)
+        {
+            int fromI = reader.ReadInt32();
+            int fromJ = reader.ReadInt32();
+            int toI = reader.ReadInt32();
+            int toJ = reader.ReadInt32();
+            return new Action(fromI, fromJ, toI, toJ);
         }
     }
 }
