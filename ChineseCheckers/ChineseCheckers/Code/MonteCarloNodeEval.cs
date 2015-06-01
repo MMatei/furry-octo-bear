@@ -93,6 +93,8 @@ namespace ChineseCheckers
                     return Convert.ToInt32(max == AIPlayerIndex);
                 }
                 List<Action> moves = Action.getActions(testBoard, pi, ai);
+                if (moves.Count == 0)
+                    return 0; // loss
                 Action bestMove = null;
                 int r = rand.Next(101); // there's a chance to choose a random action
                 if (r < eps) // we do this to spice things up and avoid local optima

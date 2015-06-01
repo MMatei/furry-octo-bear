@@ -9,6 +9,7 @@ namespace ChineseCheckers
     {
         // constanta de explorare
         protected static double C = Math.Sqrt(2);
+        protected static double W = 0.1; // contributia istoriei progresive
         // epsilon - the percentage chance we select a random move in playout
         // it is, in fact, indispensible in the good functioning of a playout
         protected static double eps = 5;

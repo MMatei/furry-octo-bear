@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace ChineseCheckers.Code
+namespace ChineseCheckers
 {
     public class DictionaryIO
     {
-        public static void write(Dictionary<Action, string> dictionary, string file)
+        internal static void write(Dictionary<Action, int> dictionary, string file)
         {
             using (FileStream fs = File.OpenWrite(file))
             using (BinaryWriter writer = new BinaryWriter(fs))
@@ -24,21 +24,26 @@ namespace ChineseCheckers.Code
             }
         }
 
-        public static Dictionary<Action, string> read(string file)
+        internal static Dictionary<Action, int> read(string file)
         {
-            var result = new Dictionary<Action, string>();
-            using (FileStream fs = File.OpenRead(file))
-            using (BinaryReader reader = new BinaryReader(fs))
+            var result = new Dictionary<Action, int>();
+            try
             {
-                // Get count.
-                int count = reader.ReadInt32();
-                // Read in all pairs.
-                for (int i = 0; i < count; i++)
+                using (FileStream fs = File.OpenRead(file))
+                using (BinaryReader reader = new BinaryReader(fs))
                 {
-                    Action key = Action.fromBinary(reader);
-                    string value = reader.ReadString();
-                    result[key] = value;
+                    // Get count.
+                    int count = reader.ReadInt32();
+                    // Read in all pairs.
+                    for (int i = 0; i < count; i++)
+                    {
+                        Action key = Action.fromBinary(reader);
+                        int value = reader.ReadInt32();
+                        result[key] = value;
+                    }
                 }
+            } catch (Exception ex) { // if file doesn't exist, don't brutally end the program
+                Console.WriteLine(ex.StackTrace);
             }
             return result;
         }

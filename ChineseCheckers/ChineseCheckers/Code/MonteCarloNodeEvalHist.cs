@@ -5,33 +5,40 @@ using System.Text;
 
 namespace ChineseCheckers
 {
-    class MonteCarloNode2ply : MonteCarloNode
+    class MonteCarloNodeEvalHist : MonteCarloNode
     {
-        public MonteCarloNode2ply(Board _board, MonteCarloNode2ply _parent, int parentPlayerIndex, bool debug) :
+        internal Action act;
+
+        public MonteCarloNodeEvalHist(Action a, Board _board, MonteCarloNode _parent, int parentPlayerIndex, bool debug) :
             base(_board, _parent, parentPlayerIndex, debug)
         {
-            eps = 20;
+            eps = 0;
+            act = a;
         }
 
         // this function must be called on the root of the Monte Carlo Tree
         // it returns the most promising node to be explored
         public override MonteCarloNode select()
         {
-            MonteCarloNode2ply node = this;
+            MonteCarloNodeEvalHist node = this;
             // intoarcem primul nod care are copii neexplorati
             // daca dam peste un nod terminal, functia intoarce null
             // in idea ca in acel moment incheiem parcurgerea arborelui
             // (deoarece am ajuns la finalul caii cea mai promitatoare)
+            int pi = AIPlayerIndex;
             while (node != null && node.unexploredActions.Count == 0)
             {
                 // selectam cel mai promitator copil
                 double maxScore = -1;
-                MonteCarloNode2ply mostPromising = null;
-                foreach (MonteCarloNode2ply child in node.children)
+                MonteCarloNodeEvalHist mostPromising = null;
+                foreach (MonteCarloNodeEvalHist child in node.children)
                 {
+                    int actionScore;
+                    Game1.aiHistory[pi].TryGetValue(child.act, out actionScore);
                     double score = child.victories;
                     score /= child.totalGames;
                     score += C * Math.Sqrt(Math.Log(node.timesVisited) / child.timesVisited);
+                    score += W * actionScore;
                     if (score > maxScore)
                     {
                         maxScore = score;
@@ -51,7 +58,7 @@ namespace ChineseCheckers
             unexploredActions.RemoveAt(0);
             Board newBoard = new Board(board); // the new node represents a new board
             newBoard.movePiece(a.fromI, a.fromJ, a.toI, a.toJ, playerIndex); // with an action taken
-            MonteCarloNode2ply child = new MonteCarloNode2ply(newBoard, this, playerIndex, false);
+            MonteCarloNodeEvalHist child = new MonteCarloNodeEvalHist(a, newBoard, this, playerIndex, false);
             children.AddLast(child);
             return child;
         }
@@ -61,7 +68,7 @@ namespace ChineseCheckers
         {
             Board testBoard = new Board(board);
             int pi = playerIndex;
-            int turns = Game1.numPlayers * 5;
+            int turns = Game1.numPlayers * 5; // 5 turns per player
             for (int i = 0; i < Game1.numPlayers; i++)
                 accScore[i] = 0;
             while (!testBoard.hasWon(pi))
@@ -76,8 +83,7 @@ namespace ChineseCheckers
                             max = i;
                     return Convert.ToInt32(max == AIPlayerIndex);
                 }
-                int piP1 = (pi + 1) % Game1.numPlayers;
-                List<Action> moves = Action.getActionsPruned(testBoard, pi, ai);
+                List<Action> moves = Action.getActions(testBoard, pi, ai);
                 if (moves.Count == 0)
                     return 0; // loss
                 Action bestMove = null;
@@ -85,35 +91,42 @@ namespace ChineseCheckers
                 if (r < eps) // we do this to spice things up and avoid local optima
                     bestMove = moves[rand.Next(moves.Count)];
                 else
-                { // look at the opponents possible actions
-                    int maxScore = -1000;
+                { // choose the move with the longest path
+                    int score = -100;
                     foreach (Action a in moves)
                     {
-                        int score = -100;
-                        testBoard.movePiece(a.fromI, a.fromJ, a.toI, a.toJ, pi);
-                        List<Action> moves2 = Action.getActions(testBoard, pi, ai);
-                        if (moves.Count == 0)
-                            return 0; // loss
-                        foreach (Action aa in moves2)
+                        if (a.score > score)
                         {
-                            if (aa.score > score)
-                                score = aa.score;
-                        }
-                        testBoard.movePiece(a.toI, a.toJ, a.fromI, a.fromJ, pi); // reverse move, to restore board
-                        score = a.score - score;
-                        if (score > maxScore)
-                        {
-                            maxScore = score;
+                            score = a.score;
                             bestMove = a;
                         }
                     }
                 }
                 testBoard.movePiece(bestMove.fromI, bestMove.fromJ, bestMove.toI, bestMove.toJ, pi);
                 accScore[pi] += bestMove.score; // keep track of the score each player racks
-                pi = piP1;// each player moves in turn
+                pi = (pi + 1) % Game1.numPlayers;// each player moves in turn
                 turns--;
             }
-            return Convert.ToInt32(testBoard.hasWon(playerIndex));
+            return Convert.ToInt32(testBoard.hasWon(AIPlayerIndex));
+        }
+
+        // called on the root of the tree; it will return the board of the most
+        // promising child
+        public MonteCarloNodeEvalHist getBestResult()
+        {
+            double maxScore = -1;
+            MonteCarloNodeEvalHist mostPromising = null;
+            foreach (MonteCarloNodeEvalHist child in children) {
+                double score = child.victories;
+                score /= child.totalGames;
+                Console.WriteLine(child.victories + " " + child.totalGames + " " + score);
+                if (score > maxScore) {
+                    maxScore = score;
+                    mostPromising = child;
+                }
+            }
+            Console.WriteLine();
+            return mostPromising;
         }
     }
 }

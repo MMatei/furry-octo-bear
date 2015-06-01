@@ -34,6 +34,9 @@ namespace ChineseCheckers
         private int crtPlayer = 0;
         private String[] playerText; // text representing the six players
         internal static AI[] isAI; // is the player human (null) or AI (which type)
+        internal static Dictionary<Action, int>[] aiHistory; // a dictionary of the usefulness of actions
+        internal static List<Action>[] aiActions; // a list of the actions the ai has taken during the game
+        // used in order to complete our history
 
         private int state = STATE_RUNNING; // the game state, one of the following:
         private const int STATE_RUNNING = 2;
@@ -270,8 +273,28 @@ namespace ChineseCheckers
 
         private void checkForVictory()
         {
-            if (board.hasWon(crtPlayer))
+            if (board.hasWon(crtPlayer)) {
                 state = STATE_WON;
+                // Now that the game is won, merge the actions of the AIs into the history
+                for (int i = 0; i < numPlayers; i++) {
+                    if (isAI[i] == null)
+                        continue;
+                    var dict = aiHistory[i];
+                    if (crtPlayer == i) // Winner's actions have their score increased
+                    foreach (Action a in aiActions[i]) {
+                        int val;
+                        dict.TryGetValue(a, out val); // pass by reference
+                        dict[a] = val + 1;
+                    }
+                    else
+                    foreach (Action a in aiActions[i]) {
+                        int val;
+                        dict.TryGetValue(a, out val); // pass by reference
+                        dict[a] = val - 1;
+                    }
+                    DictionaryIO.write(dict, "history_" + i + ".bin");
+                }
+            }
         }
 
         // Loads information regarding the number of players and whether these players are AI/human
@@ -284,17 +307,20 @@ namespace ChineseCheckers
             String s = file.ReadLine();
             String[] ints = s.Split(' ');
             isAI = new AI[numPlayers];
-            for (int i = 0; i < numPlayers; i++)
-            {
+            aiHistory = new Dictionary<Action, int>[numPlayers];
+            aiActions = new List<Action>[numPlayers];
+            for (int i = 0; i < numPlayers; i++) {
                 int AItype = Convert.ToInt32(ints[i]);
+                // aiHistory is used regardless if player i is AI or not
+                aiHistory[i] = DictionaryIO.read("history_" + i + ".bin");
                 Console.WriteLine(AItype);
-                switch (AItype)
-                {
+                switch (AItype) {
                     case 1: isAI[i] = new AI();
-                        Console.WriteLine(isAI[i] == null);
                         break;
                     case 2: isAI[i] = new OtherAI();
-                        Console.WriteLine(isAI[i] == null);
+                        break;
+                    case 3: isAI[i] = new LearningAI();
+                        aiActions[i] = new List<Action>();
                         break;
                     default: isAI[i] = null;
                         break;
