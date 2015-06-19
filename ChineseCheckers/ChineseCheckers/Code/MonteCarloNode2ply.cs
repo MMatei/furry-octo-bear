@@ -7,6 +7,12 @@ namespace ChineseCheckers
 {
     class MonteCarloNode2ply : MonteCarloNode
     {
+        public MonteCarloNode2ply(Board _board, MonteCarloNode2ply _parent, int parentPlayerIndex) :
+            base(_board, _parent, parentPlayerIndex)
+        {
+            eps = 20;
+        }
+
         public MonteCarloNode2ply(Board _board, MonteCarloNode2ply _parent, int parentPlayerIndex, bool debug) :
             base(_board, _parent, parentPlayerIndex, debug)
         {
@@ -51,7 +57,7 @@ namespace ChineseCheckers
             unexploredActions.RemoveAt(0);
             Board newBoard = new Board(board); // the new node represents a new board
             newBoard.movePiece(a.fromI, a.fromJ, a.toI, a.toJ, playerIndex); // with an action taken
-            MonteCarloNode2ply child = new MonteCarloNode2ply(newBoard, this, playerIndex, false);
+            MonteCarloNode2ply child = new MonteCarloNode2ply(newBoard, this, playerIndex);
             children.AddLast(child);
             return child;
         }
@@ -92,8 +98,8 @@ namespace ChineseCheckers
                         int score = -100;
                         testBoard.movePiece(a.fromI, a.fromJ, a.toI, a.toJ, pi);
                         List<Action> moves2 = Action.getActions(testBoard, pi, ai);
-                        if (moves.Count == 0)
-                            return 0; // loss
+                        if (moves2.Count == 0)
+                            return 0; // loss?
                         foreach (Action aa in moves2)
                         {
                             if (aa.score > score)

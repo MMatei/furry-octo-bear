@@ -7,11 +7,7 @@ namespace ChineseCheckers
 {
     class OtherAI : AI
     {
-        private const long THINK_TIME = 10000;
-        public OtherAI()
-        {
-            //k = 100;
-        }
+        private const long THINK_TIME = 20000;
 
         protected override Board getAIMove()
         {

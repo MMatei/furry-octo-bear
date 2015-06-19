@@ -112,6 +112,7 @@
     <Compile Include="Code\DictionaryIO.cs" />
     <Compile Include="Code\LearningAI.cs" />
     <Compile Include="Code\MonteCarloNodeEvalHist.cs" />
+    <Compile Include="Code\MonteCarloNodeScore2.cs" />
     <Compile Include="Code\OtherAI.cs" />
     <Compile Include="Code\Board.cs" />
     <Compile Include="Code\MonteCarloNode.cs" />

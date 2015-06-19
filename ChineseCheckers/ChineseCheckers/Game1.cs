@@ -166,6 +166,8 @@ namespace ChineseCheckers
                                         if(isAI[nextPlayer] != null) // non - human
                                             // while animation is playing, think
                                             isAI[nextPlayer].think(board, nextPlayer);
+                                        // Learn from the humie
+                                        aiActions[crtPlayer].Add(new Action(fromI, fromJ, toI, toJ));
                                         break;
                                     }
                                 }
@@ -277,8 +279,8 @@ namespace ChineseCheckers
                 state = STATE_WON;
                 // Now that the game is won, merge the actions of the AIs into the history
                 for (int i = 0; i < numPlayers; i++) {
-                    if (isAI[i] == null)
-                        continue;
+                    //if (isAI[i] == null)
+                    //    continue;
                     var dict = aiHistory[i];
                     if (crtPlayer == i) // Winner's actions have their score increased
                     foreach (Action a in aiActions[i]) {
@@ -313,6 +315,15 @@ namespace ChineseCheckers
                 int AItype = Convert.ToInt32(ints[i]);
                 // aiHistory is used regardless if player i is AI or not
                 aiHistory[i] = DictionaryIO.read("history_" + i + ".bin");
+                aiHistory[i][new Action(2, 7, 4, 7)] = 100;
+                //aiHistory[i][new Action(3, 6, 12, 4)] = -100;
+
+                aiHistory[i][new Action(6, 11, 7, 9)] = 100;
+                aiHistory[i][new Action(12, 10, 11, 8)] = 100;
+                aiHistory[i][new Action(14, 5, 12, 5)] = 100;
+                aiHistory[i][new Action(9, 1, 8, 2)] = 100;
+                aiHistory[i][new Action(4, 2, 5, 3)] = 100;
+                aiActions[i] = new List<Action>();
                 Console.WriteLine(AItype);
                 switch (AItype) {
                     case 1: isAI[i] = new AI();
@@ -320,7 +331,6 @@ namespace ChineseCheckers
                     case 2: isAI[i] = new OtherAI();
                         break;
                     case 3: isAI[i] = new LearningAI();
-                        aiActions[i] = new List<Action>();
                         break;
                     default: isAI[i] = null;
                         break;

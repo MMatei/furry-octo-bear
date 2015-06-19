@@ -7,6 +7,12 @@ namespace ChineseCheckers
 {
     class MonteCarloNodeEval : MonteCarloNode
     {
+        public MonteCarloNodeEval(Board _board, MonteCarloNode _parent, int parentPlayerIndex) :
+            base(_board, _parent, parentPlayerIndex)
+        {
+            eps = 0;
+        }
+
         public MonteCarloNodeEval(Board _board, MonteCarloNode _parent, int parentPlayerIndex, bool debug) :
             base(_board, _parent, parentPlayerIndex, debug)
         {
@@ -51,7 +57,7 @@ namespace ChineseCheckers
             unexploredActions.RemoveAt(0);
             Board newBoard = new Board(board); // the new node represents a new board
             newBoard.movePiece(a.fromI, a.fromJ, a.toI, a.toJ, playerIndex); // with an action taken
-            MonteCarloNodeEval child = new MonteCarloNodeEval(newBoard, this, playerIndex, false);
+            MonteCarloNodeEval child = new MonteCarloNodeEval(newBoard, this, playerIndex);
             children.AddLast(child);
             return child;
         }
@@ -70,7 +76,14 @@ namespace ChineseCheckers
                 // of the board to determine the winner
                 if (turns == 0)
                 {
-                    /*byte[][] piecePos = testBoard.getPiecePos();
+                    /* From [2] :
+                     * The other function will be the difference in average position of the two
+                     * players. Each player will check how many rows away from the home area their
+                     * pieces are. This gives an approximation of how close the group is to winning.
+                     * Again, using the differences hould lead players to try and block each other,
+                     * while moving quickly across the board, if possible.
+                     */
+                    byte[][] piecePos = testBoard.getPiecePos();
                     int winner = 0, winnerScore = 9999; // smaller score is better
                     for (int i = 0; i < Game1.numPlayers; i++)
                     {
@@ -84,13 +97,13 @@ namespace ChineseCheckers
                             winnerScore = score;
                         }
                     }
-                    return winner == playerIndex;*/
+                    return Convert.ToInt32(winner == playerIndex);
                     //Console.WriteLine("!"+accScore[0]+" "+accScore[1]);
-                    int max = 0; // estimate the winner to be the player with max score accumulated
+                    /*int max = 0; // estimate the winner to be the player with max score accumulated
                     for (int i = 1; i < Game1.numPlayers; i++)
                         if (accScore[max] < accScore[i])
                             max = i;
-                    return Convert.ToInt32(max == AIPlayerIndex);
+                    return Convert.ToInt32(max == AIPlayerIndex);*/
                 }
                 List<Action> moves = Action.getActions(testBoard, pi, ai);
                 if (moves.Count == 0)

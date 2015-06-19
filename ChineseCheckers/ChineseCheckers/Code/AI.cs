@@ -80,6 +80,12 @@ namespace ChineseCheckers
         }
         protected static int[] playerGoal = { 16, 6, 0, 6, 12, 12, 4, 0, 12, 0, 4, 12 };
 
+        public virtual int scoreHome(int i, int j, int pi_2)
+        {
+            return Board.h(playerHome[pi_2], playerHome[pi_2 + 1], i, j);
+        }
+        protected static int[] playerHome = { 0, 6, 16, 6, 4, 0, 12, 12, 4, 12, 12, 0 };
+
         public void think(Board board, int playerIndex)
         {
             AI.board = board;

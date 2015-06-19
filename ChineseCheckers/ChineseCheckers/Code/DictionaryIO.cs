@@ -26,7 +26,7 @@ namespace ChineseCheckers
 
         internal static Dictionary<Action, int> read(string file)
         {
-            var result = new Dictionary<Action, int>();
+            var result = new Dictionary<Action, int>(new Action.Comparator());
             try
             {
                 using (FileStream fs = File.OpenRead(file))

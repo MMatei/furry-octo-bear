@@ -8,7 +8,7 @@ namespace ChineseCheckers
     class MonteCarloNodeScore
     {
         // constanta de explorare
-        protected static double C = Math.Sqrt(2);
+        protected static double C = 16;//Math.Sqrt(2);
         // epsilon - the percentage chance we select a random move in playout
         // it is, in fact, indispensible in the good functioning of a playout
         protected static double eps = 0;
@@ -72,7 +72,8 @@ namespace ChineseCheckers
                     // cea mai avantajoasa pt player-ul curent
                     // (reprezentat de player index-ul copilulului;
                     // remember: nodul copacului reprezinta jucatorul precedent)
-                    double score = this.score[child.playerIndex];
+                    double score = child.score[child.playerIndex];
+                    score /= child.timesVisited;
                     // the exploration component should perhaps be revised?
                     score += C * Math.Sqrt(Math.Log(node.timesVisited) / child.timesVisited);
                     if (score > maxScore)
@@ -81,7 +82,6 @@ namespace ChineseCheckers
                         mostPromising = child;
                     }
                 }
-                node.timesVisited++;
                 node = mostPromising;
             }
             return node;
@@ -104,8 +104,6 @@ namespace ChineseCheckers
             Board testBoard = new Board(board);
             int pi = playerIndex;
             int turns = Game1.numPlayers * 5; // 5 turns per player
-            for (int i = 0; i < Game1.numPlayers; i++)
-                score[i] = 0;
             while (!testBoard.hasWon(pi))
             {
                 if (turns == 0)
@@ -138,6 +136,7 @@ namespace ChineseCheckers
                 turns--;
             }
             // pi has won, adjust the scores accordingly
+            Console.Write("won ");
             for (int i = 0; i < Game1.numPlayers; i++)
                 score[i] = -100;
             score[pi] = 100;
@@ -166,6 +165,7 @@ namespace ChineseCheckers
                     return;
                 for (int i = 0; i < Game1.numPlayers; i++)
                     score[i] = c.score[i];*/
+                node.timesVisited++;
                 for (int i = 0; i < Game1.numPlayers; i++)
                     node.score[i] += score[i];
                 node = node.parent;
@@ -178,12 +178,15 @@ namespace ChineseCheckers
         {
             double maxScore = -10000;
             MonteCarloNodeScore mostPromising = null;
+            int other = (AIPlayerIndex + 1) % Game1.numPlayers;
             foreach (MonteCarloNodeScore child in children)
             {
-                Console.Write(child.score[AIPlayerIndex]+" ");
-                if (child.score[AIPlayerIndex] > maxScore)
+                double score = child.score[AIPlayerIndex];//diferenta ruineaza algo
+                score /= child.timesVisited;
+                Console.Write(child.score[AIPlayerIndex]+"/"+child.timesVisited+"="+score+" ");
+                if (score > maxScore)
                 {
-                    maxScore = child.score[AIPlayerIndex];
+                    maxScore = score;
                     mostPromising = child;
                 }
             }

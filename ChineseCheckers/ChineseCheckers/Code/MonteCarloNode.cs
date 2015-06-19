@@ -8,7 +8,7 @@ namespace ChineseCheckers
     class MonteCarloNode
     {
         // constanta de explorare
-        protected static double C = Math.Sqrt(2);
+        protected static double C = 2;//Math.Sqrt(2);
         protected static double W = 0.1; // contributia istoriei progresive
         // epsilon - the percentage chance we select a random move in playout
         // it is, in fact, indispensible in the good functioning of a playout
@@ -27,7 +27,7 @@ namespace ChineseCheckers
         internal int totalGames = 0; // numarul de jocuri jucate porinind din acest nod
         internal int timesVisited = 1;// numarul de vizitari ale nodului
 
-        public MonteCarloNode(Board _board, MonteCarloNode _parent, int parentPlayerIndex, bool debug)
+        public MonteCarloNode(Board _board, MonteCarloNode _parent, int parentPlayerIndex)
         {
             board = _board;
             parent = _parent;
@@ -40,27 +40,52 @@ namespace ChineseCheckers
             // (factor de ramificare imens + viteza mica de explorare == dezastru)
             if (!board.hasWon(playerIndex))
                 unexploredActions = Action.getActionsPruned(board, playerIndex, ai);
-            else
-            {
+            else {
                 unexploredActions = new List<Action>();
-                if (playerIndex == AIPlayerIndex)
-                {
+                if (playerIndex == AIPlayerIndex) {
                     // This node represents a victory by me; implicitly assign to it a high score
                     // in order to give more weight to the chain of actions leading here
                     victories = 1000;
                     totalGames = 1000;
                     MonteCarloNode node = this; // backpropagate
-                    while (node.parent != null)
-                    {
+                    while (node.parent != null) {
                         node.parent.totalGames += 1000;
                         node.parent.victories += 1000;
                         node = node.parent;
                     }
                 }
             }
-            if (debug)
-                foreach(Action a in unexploredActions)
-                    Console.WriteLine(a);
+        }
+
+        // special constructor for root; no pruning because:
+        // a) we can explore all the relevant options
+        // b) this is paramount for the first move, where there are many moves of equal value
+        // while the difference between the two constructors could be summed up with just an if
+        // this option is faster (because that if would be needlessly check thousands of times)
+        public MonteCarloNode(Board _board, MonteCarloNode _parent, int parentPlayerIndex, bool root)
+        {
+            board = _board;
+            parent = _parent;
+            playerIndex = (parentPlayerIndex + 1) % Game1.numPlayers;
+            children = new LinkedList<MonteCarloNode>();
+            if (!board.hasWon(playerIndex))
+                unexploredActions = Action.getActionsPrunedRoot(board, playerIndex, ai);
+            else {
+                unexploredActions = new List<Action>();
+                if (playerIndex == AIPlayerIndex) {
+                    victories = 1000;
+                    totalGames = 1000;
+                    MonteCarloNode node = this;
+                    while (node.parent != null) {
+                        node.parent.totalGames += 1000;
+                        node.parent.victories += 1000;
+                        node = node.parent;
+                    }
+                }
+            }
+            // debug
+            foreach(Action a in unexploredActions)
+                Console.WriteLine(a);
         }
 
         // this function must be called on the root of the Monte Carlo Tree
@@ -98,7 +123,7 @@ namespace ChineseCheckers
             unexploredActions.RemoveAt(0);
             Board newBoard = new Board(board); // the new node represents a new board
             newBoard.movePiece(a.fromI, a.fromJ, a.toI, a.toJ, playerIndex); // with an action taken
-            MonteCarloNode child = new MonteCarloNode(newBoard, this, playerIndex, false);
+            MonteCarloNode child = new MonteCarloNode(newBoard, this, playerIndex);
             children.AddLast(child);
             return child;
         }
@@ -139,7 +164,7 @@ namespace ChineseCheckers
         public virtual void backpropagation(int victory)
         {
             MonteCarloNode node = this;
-            totalGames = 1;
+            totalGames = 2; // a 1 game, 1 victory ratio is dangerous
             victories = victory;
             while (node.parent != null)
             {
