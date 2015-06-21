@@ -10,13 +10,11 @@ namespace ChineseCheckers
         public MonteCarloNodeEval(Board _board, MonteCarloNode _parent, int parentPlayerIndex) :
             base(_board, _parent, parentPlayerIndex)
         {
-            eps = 0;
         }
 
         public MonteCarloNodeEval(Board _board, MonteCarloNode _parent, int parentPlayerIndex, bool debug) :
             base(_board, _parent, parentPlayerIndex, debug)
         {
-            eps = 0;
         }
 
         // this function must be called on the root of the Monte Carlo Tree
@@ -110,7 +108,7 @@ namespace ChineseCheckers
                     return 0; // loss
                 Action bestMove = null;
                 int r = rand.Next(101); // there's a chance to choose a random action
-                if (r < eps) // we do this to spice things up and avoid local optima
+                if (r < ai.eps) // we do this to spice things up and avoid local optima
                     bestMove = moves[rand.Next(moves.Count)];
                 else
                 { // choose the move with the longest path

@@ -12,14 +12,12 @@ namespace ChineseCheckers
         public MonteCarloNodeEvalHist(Action a, Board _board, MonteCarloNode _parent, int parentPlayerIndex) :
             base(_board, _parent, parentPlayerIndex)
         {
-            eps = 0;
             act = a;
         }
 
         public MonteCarloNodeEvalHist(Action a, Board _board, MonteCarloNode _parent, int parentPlayerIndex, bool debug) :
             base(_board, _parent, parentPlayerIndex, debug)
         {
-            eps = 0;
             act = a;
         }
 

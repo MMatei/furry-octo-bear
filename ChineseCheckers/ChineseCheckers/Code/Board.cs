@@ -402,17 +402,23 @@ namespace ChineseCheckers
         }
 
         /// <summary>
-        /// Computes the euclidean distance between two point on the table, rounded down
-        /// to the nearest integer, to provide uniformity (due to the hex nature of the board
-        /// sqrt(5) and 2 are actually the same distance)
-        /// If strictly measuring jump distance, divide this by two (so that the
+        /// Computes the exact hex distance between two point on the table
+        /// If strictly measuring jump distance, use hDiv2 (so that the
         /// heuristic is admissible, meaning optimistic)
         /// </summary>
         internal static int h(int fromI, int fromJ, int toI, int toJ)
         {
-            //return (int)Math.Sqrt(Math.Pow(toI - fromI, 2) + Math.Pow(toJ - fromJ, 2));
-            // This needs some revision, but the option below worsens the issue...
-            return (int)Math.Round(Math.Sqrt(Math.Pow(toI - fromI, 2) + Math.Pow(toJ - fromJ, 2)));
+            // transform to axial coords
+            int r1 = fromI, r2 = toI;
+            int q1 = fromJ - r1 / 2, q2 = toJ - r2 / 2;
+            return (Math.Abs(r1 - r2) + Math.Abs(q1 - q2) + Math.Abs(r1 + q1 - r2 - q2))/2;
+        }
+        private int hDiv2(int fromI, int fromJ, int toI, int toJ)
+        {
+            // transform to axial coords
+            int r1 = fromI, r2 = toI;
+            int q1 = fromJ - r1 / 2, q2 = toJ - r2 / 2;
+            return (Math.Abs(r1 - r2) + Math.Abs(q1 - q2) + Math.Abs(r1 + q1 - r2 - q2))/4;
         }
 
         /// <summary>
@@ -503,7 +509,7 @@ namespace ChineseCheckers
                         if (tempBoard[x2][y2] == 128)
                         {
                             queue.Enqueue(new SearchNode(new LinkedList<int>(n.path),
-                                            (int)(n.path.Count + h(x2,y2,toI,toJ)/2), x2, y2));
+                                            (int)(n.path.Count + hDiv2(x2,y2,toI,toJ)), x2, y2));
                             tempBoard[x2][y2] = 255;
                         }
                         dir_x_2 = (dir_x_2 + 2) % 12;
@@ -512,7 +518,7 @@ namespace ChineseCheckers
                         if (tempBoard[x2][y2] == 128)
                         {
                             queue.Enqueue(new SearchNode(new LinkedList<int>(n.path),
-                                            (int)(n.path.Count + h(x2, y2, toI, toJ) / 2), x2, y2));
+                                            (int)(n.path.Count + hDiv2(x2, y2, toI, toJ)), x2, y2));
                             tempBoard[x2][y2] = 255;
                         }
                         dir_x_2 = modulo((dir_x_2 - 4), 12);
@@ -521,7 +527,7 @@ namespace ChineseCheckers
                         if (tempBoard[x2][y2] == 128)
                         {
                             queue.Enqueue(new SearchNode(new LinkedList<int>(n.path),
-                                            (int)(n.path.Count + h(x2, y2, toI, toJ) / 2), x2, y2));
+                                            (int)(n.path.Count + hDiv2(x2, y2, toI, toJ)), x2, y2));
                             tempBoard[x2][y2] = 255;
                         }
                     }

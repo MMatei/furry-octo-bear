@@ -9,9 +9,6 @@ namespace ChineseCheckers
     {
         // constanta de explorare
         protected static double C = 64;//Math.Sqrt(2);
-        // epsilon - the percentage chance we select a random move in playout
-        // it is, in fact, indispensible in the good functioning of a playout
-        protected static double eps = 0;
         protected static Random rand = new Random();
 
         public static int AIPlayerIndex;// the index of the AI player on whose behalf we are running this scheme
@@ -106,7 +103,7 @@ namespace ChineseCheckers
                     double score = child.score[child.playerIndex];
                     //score /= child.timesVisited;
                     int j = i / count;
-                    score += j * 10; // give more weight to 1st node
+                    //score += j * 10; // give more weight to 1st node
                     i--;
                     // the exploration component should perhaps be revised?
                     score += C * Math.Sqrt(Math.Log(node.timesVisited) / child.timesVisited);

@@ -7,9 +7,9 @@ namespace ChineseCheckers
 {
     class OtherAI : AI
     {
-        private const long THINK_TIME = 20000;
+        private const long THINK_TIME = 15000;
 
-        protected override Board getAIMove()
+        /*protected override Board getAIMove()
         {
             MonteCarloNodeScore.AIPlayerIndex = playerIndex;
             MonteCarloNodeScore.ai = this;
@@ -40,9 +40,9 @@ namespace ChineseCheckers
             Console.WriteLine("explored " + nodesExplored + " nodes ");
             //Console.WriteLine(currentTimeMillis() - stopTime);
             return tree.getBestResult();
-        }
+        }*/
 
-        /*protected override Board getAIMove()
+        protected override Board getAIMove()
         {
             MonteCarloNodeEval.AIPlayerIndex = playerIndex;
             MonteCarloNodeEval.ai = this;
@@ -72,7 +72,7 @@ namespace ChineseCheckers
             Console.WriteLine("explored " + nodesExplored + " nodes ");
             //Console.WriteLine(currentTimeMillis() - stopTime);
             return tree.getBestResult();
-        }*/
+        }
 
         /*protected override Board getAIMove()
         {

@@ -56,7 +56,6 @@ namespace ChineseCheckers
             // we need it to translate mouse position from screen space to board space
             widthRatio = (818 / (double)screenRect.Width);
             heightRatio = (916 / (double)screenRect.Height);
-            Console.WriteLine(Board.h(8, 2, 0, 6) + " " + Board.h(7, 2, 0, 6));
         }
 
         /// <summary>
@@ -300,14 +299,15 @@ namespace ChineseCheckers
         }
 
         // Loads information regarding the number of players and whether these players are AI/human
-        // from the file config.txt; this is done to allow automated testing
-        // this should be further expanded with values for constants and AI algorithms
+        // from the file config.txt; first line is nr of players
+        // second line is type of AI separeated by spaces
+        // third line is epsilon value
         private void loadConfig()
         {
             System.IO.StreamReader file = new System.IO.StreamReader("config.txt");
             numPlayers = Convert.ToInt32(file.ReadLine());
-            String s = file.ReadLine();
-            String[] ints = s.Split(' ');
+            String[] ints = file.ReadLine().Split(' ');
+            String[] eps = file.ReadLine().Split(' ');
             isAI = new AI[numPlayers];
             aiHistory = new Dictionary<Action, int>[numPlayers];
             aiActions = new List<Action>[numPlayers];
@@ -335,6 +335,8 @@ namespace ChineseCheckers
                     default: isAI[i] = null;
                         break;
                 }
+                if (isAI[i] != null)
+                    isAI[i].eps = Convert.ToInt32(eps[i]);
             }
             file.Close();
             AI.startAIThread();

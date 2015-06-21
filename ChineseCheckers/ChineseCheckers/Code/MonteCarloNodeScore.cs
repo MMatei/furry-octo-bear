@@ -9,9 +9,6 @@ namespace ChineseCheckers
     {
         // constanta de explorare
         protected static double C = 16;//Math.Sqrt(2);
-        // epsilon - the percentage chance we select a random move in playout
-        // it is, in fact, indispensible in the good functioning of a playout
-        protected static double eps = 0;
         protected static Random rand = new Random();
 
         public static int AIPlayerIndex;// the index of the AI player on whose behalf we are running this scheme
@@ -116,7 +113,7 @@ namespace ChineseCheckers
                 }
                 Action bestMove = null;
                 int r = rand.Next(101); // there's a chance to choose a random action
-                if (r < eps) // we do this to spice things up and avoid local optima
+                if (r < ai.eps) // we do this to spice things up and avoid local optima
                     bestMove = moves[rand.Next(moves.Count)];
                 else
                 { // choose the move with the longest path

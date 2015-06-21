@@ -12,7 +12,6 @@ namespace ChineseCheckers
         protected static double W = 0.1; // contributia istoriei progresive
         // epsilon - the percentage chance we select a random move in playout
         // it is, in fact, indispensible in the good functioning of a playout
-        protected static double eps = 5;
         protected static Random rand = new Random();
 
         public static int AIPlayerIndex;// the index of the AI player on whose behalf we are running this scheme
@@ -69,7 +68,7 @@ namespace ChineseCheckers
             playerIndex = (parentPlayerIndex + 1) % Game1.numPlayers;
             children = new LinkedList<MonteCarloNode>();
             if (!board.hasWon(playerIndex))
-                unexploredActions = Action.getActionsPrunedRoot(board, playerIndex, ai);
+                unexploredActions = Action.getActionsPruned(board, playerIndex, ai);
             else {
                 unexploredActions = new List<Action>();
                 if (playerIndex == AIPlayerIndex) {
@@ -139,7 +138,7 @@ namespace ChineseCheckers
                     return 0; // loss
                 Action bestMove = null;
                 int r = rand.Next(101); // there's a chance to choose a random action
-                if (r < eps) // we do this to spice things up and avoid local optima
+                if (r < ai.eps) // we do this to spice things up and avoid local optima
                     bestMove = moves[rand.Next(moves.Count)];
                 else
                 { // choose the move with the longest path
@@ -164,7 +163,7 @@ namespace ChineseCheckers
         public virtual void backpropagation(int victory)
         {
             MonteCarloNode node = this;
-            totalGames = 2; // a 1 game, 1 victory ratio is dangerous
+            totalGames = 1;
             victories = victory;
             while (node.parent != null)
             {

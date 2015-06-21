@@ -12,8 +12,9 @@ namespace ChineseCheckers
     /// </summary>
     class AI
     {
+        public double eps = 0; // for e-greedy playouts
         public int k = 5; // for k-best pruning
-        private const long THINK_TIME = 10000;
+        private const long THINK_TIME = 15000;
         private static Thread thread;
 
         public static int thinking = 0; // 0 - not thinking, 1 - thinking, 2 - done thinking
