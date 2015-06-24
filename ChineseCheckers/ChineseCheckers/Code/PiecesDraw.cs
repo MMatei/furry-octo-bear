@@ -63,6 +63,13 @@ namespace ChineseCheckers
                     }
         }
 
+        public static void cancelAnimation()
+        {
+            pieceRect[mp_i][mp_j].X = x;
+            pieceRect[mp_i][mp_j].Y = y;
+            moveList = null;
+        }
+
         public static bool isAnimationDone()
         {
             return moveList == null;
@@ -75,7 +82,7 @@ namespace ChineseCheckers
                 if (moveList.First == null)
                 {
                     moveList = null;
-                    game.nextPlayer(); // activate next player when animation done
+                    game.nextPlayer(null, null); // activate next player when animation done
                     return;
                 }
                 int lin = moveList.First.Value;

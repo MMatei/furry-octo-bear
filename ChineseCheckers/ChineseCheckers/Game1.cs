@@ -37,6 +37,9 @@ namespace ChineseCheckers
         internal static Dictionary<Action, int>[] aiHistory; // a dictionary of the usefulness of actions
         internal static List<Action>[] aiActions; // a list of the actions the ai has taken during the game
         // used in order to complete our history
+        private bool continueGame = false; // keep playing games until nrGames is 0
+        private int nrGames = 10;
+        private int[] victories = new int[6];
 
         private int state = STATE_RUNNING; // the game state, one of the following:
         private const int STATE_RUNNING = 2;
@@ -106,6 +109,9 @@ namespace ChineseCheckers
         protected override void UnloadContent()
         {
             AI.stop();
+            Console.WriteLine("-------------------------------------");
+            Console.WriteLine("TALLY == " + victories[0] + victories[1] + victories[2] +
+                victories[3] + victories[4] + victories[5]);
         }
 
         /// <summary>
@@ -276,6 +282,8 @@ namespace ChineseCheckers
         {
             if (board.hasWon(crtPlayer)) {
                 state = STATE_WON;
+                Console.WriteLine("VICTORY for player " + crtPlayer);
+                victories[crtPlayer]++;
                 // Now that the game is won, merge the actions of the AIs into the history
                 for (int i = 0; i < numPlayers; i++) {
                     //if (isAI[i] == null)
@@ -295,16 +303,36 @@ namespace ChineseCheckers
                     }
                     DictionaryIO.write(dict, "history_" + i + ".bin");
                 }
+                if (continueGame) {
+                    nrGames--;
+                    if (nrGames == 0) {
+                        Exit();
+                        return;
+                    }
+                    PiecesDraw.cancelAnimation();
+                    state = STATE_RUNNING;
+                    crtPlayer = numPlayers - 1;
+                    board = new Board(numPlayers);
+                    PiecesDraw.createPieceRectangles(board.getPiecePos(), numPlayers);
+                    // Must switch to next player after update code runs once
+                    // because of the way AI update works
+                    System.Timers.Timer timer = new System.Timers.Timer(500);
+                    timer.Elapsed += nextPlayer;
+                    timer.Enabled = true;
+                    timer.AutoReset = false;
+                }
             }
         }
 
         // Loads information regarding the number of players and whether these players are AI/human
-        // from the file config.txt; first line is nr of players
-        // second line is type of AI separeated by spaces
-        // third line is epsilon value
+        // from the file config.txt; first line is whether game should continue ad infinitum
+        // second line is nr of players
+        // third line is type of AI separated by spaces
+        // fourth line is epsilon value
         private void loadConfig()
         {
             System.IO.StreamReader file = new System.IO.StreamReader("config.txt");
+            continueGame = Convert.ToBoolean(file.ReadLine());
             numPlayers = Convert.ToInt32(file.ReadLine());
             String[] ints = file.ReadLine().Split(' ');
             String[] eps = file.ReadLine().Split(' ');
@@ -343,7 +371,7 @@ namespace ChineseCheckers
         }
 
         // to be used by PiecesDraw, when animation is done
-        internal void nextPlayer()
+        internal void nextPlayer(Object source, System.Timers.ElapsedEventArgs e)
         {
             if(state != STATE_WON)
                 crtPlayer = (crtPlayer + 1) % numPlayers;

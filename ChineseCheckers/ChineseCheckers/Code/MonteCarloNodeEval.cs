@@ -103,7 +103,7 @@ namespace ChineseCheckers
                             max = i;
                     return Convert.ToInt32(max == AIPlayerIndex);*/
                 }
-                List<Action> moves = Action.getActions(testBoard, pi, ai);
+                List<Action> moves = Action.getActionsContinuity(testBoard, pi, ai);
                 if (moves.Count == 0)
                     return 0; // loss
                 Action bestMove = null;

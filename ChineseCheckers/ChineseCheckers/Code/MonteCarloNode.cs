@@ -83,8 +83,8 @@ namespace ChineseCheckers
                 }
             }
             // debug
-            foreach(Action a in unexploredActions)
-                Console.WriteLine(a);
+            //foreach(Action a in unexploredActions)
+            //    Console.WriteLine(a);
         }
 
         // this function must be called on the root of the Monte Carlo Tree
@@ -182,7 +182,7 @@ namespace ChineseCheckers
             foreach(MonteCarloNode child in children) {
                 double score = child.victories;
                 score /= child.totalGames;
-                Console.WriteLine(child.victories+" "+child.totalGames+" "+score);
+                //Console.WriteLine(child.victories+" "+child.totalGames+" "+score);
                 if (score > maxScore) {
                     maxScore = score;
                     mostPromising = child;

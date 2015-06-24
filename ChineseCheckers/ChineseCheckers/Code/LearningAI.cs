@@ -7,7 +7,7 @@ namespace ChineseCheckers
 {
     class LearningAI : AI
     {
-        private const long THINK_TIME = 15000;
+        private const long THINK_TIME = 5000;
 
         protected override Board getAIMove()
         {

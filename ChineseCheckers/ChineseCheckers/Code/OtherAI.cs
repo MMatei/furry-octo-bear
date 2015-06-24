@@ -7,7 +7,7 @@ namespace ChineseCheckers
 {
     class OtherAI : AI
     {
-        private const long THINK_TIME = 15000;
+        private const long THINK_TIME = 5000;
 
         /*protected override Board getAIMove()
         {
@@ -90,7 +90,7 @@ namespace ChineseCheckers
             long nodesExplored = 0;
             while (currentTimeMillis() < stopTime)
             {
-                MonteCarloNode2ply nodeToExpand = tree.select();
+                MonteCarloNode nodeToExpand = tree.select();
                 if (nodeToExpand == null)
                 {
                     Console.WriteLine("node to expand is null");
@@ -98,7 +98,7 @@ namespace ChineseCheckers
                 }
                 nodeToExpand = nodeToExpand.expand();
                 nodeToExpand.backpropagation(nodeToExpand.playout());
-                nodeToExpand.backpropagation(nodeToExpand.playout());
+                //nodeToExpand.backpropagation(nodeToExpand.playout());
                 nodesExplored++;
             }
             Console.WriteLine("explored " + nodesExplored + " nodes ");
