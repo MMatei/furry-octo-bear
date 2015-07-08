@@ -9,6 +9,36 @@ namespace ChineseCheckers
     {
         private const long THINK_TIME = 5000;
 
+        protected override Board getAIMove()
+        {
+            MonteCarloNodePH.AIPlayerIndex = playerIndex;
+            MonteCarloNodePH.ai = this;
+            // initialize Monte Carlo Tree
+            // the root must be the previous player, so that its children
+            //  represent the actions of the current player
+            playerIndex = playerIndex == 0 ? (Game1.numPlayers - 1) : (playerIndex - 1);
+            MonteCarloNodePH tree = new MonteCarloNodePH(board, null, playerIndex, null, true);
+            // we are going to run the MCTS algorithm until it either stops
+            //  (it has reached a final state)
+            // or until a time limit has expired
+            long stopTime = currentTimeMillis() + THINK_TIME;
+            long nodesExplored = 0;
+            while (currentTimeMillis() < stopTime)
+            {
+                MonteCarloNodePH nodeToExpand = tree.select();
+                if (nodeToExpand == null)
+                {
+                    Console.WriteLine("node to expand is null");
+                    break;
+                }
+                nodeToExpand = nodeToExpand.expand();
+                nodeToExpand.backpropagation(nodeToExpand.playout());
+                nodesExplored++;
+            }
+            Console.WriteLine("explored " + nodesExplored + " nodes ");
+            return tree.getBestResult();
+        }
+
         /*protected override Board getAIMove()
         {
             MonteCarloNodeScore.AIPlayerIndex = playerIndex;
@@ -42,7 +72,7 @@ namespace ChineseCheckers
             return tree.getBestResult();
         }*/
 
-        protected override Board getAIMove()
+        /*protected override Board getAIMove()
         {
             MonteCarloNodeEval.AIPlayerIndex = playerIndex;
             MonteCarloNodeEval.ai = this;
@@ -72,7 +102,7 @@ namespace ChineseCheckers
             Console.WriteLine("explored " + nodesExplored + " nodes ");
             //Console.WriteLine(currentTimeMillis() - stopTime);
             return tree.getBestResult();
-        }
+        }*/
 
         /*protected override Board getAIMove()
         {

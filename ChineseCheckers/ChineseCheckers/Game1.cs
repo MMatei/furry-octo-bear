@@ -342,13 +342,13 @@ namespace ChineseCheckers
             for (int i = 0; i < numPlayers; i++) {
                 int AItype = Convert.ToInt32(ints[i]);
                 // aiHistory is used regardless if player i is AI or not
-                aiHistory[i] = DictionaryIO.read("history_" + i + ".bin");
+                aiHistory[i] = DictionaryIO.read("history_" + numPlayers+ "_"+ i + ".bin");
                 aiHistory[i][new Action(2, 7, 4, 7)] = 100;
-                //aiHistory[i][new Action(3, 6, 12, 4)] = -100;
-
+                aiHistory[i][new Action(2, 5, 4, 5)] = 100;
                 aiHistory[i][new Action(6, 11, 7, 9)] = 100;
                 aiHistory[i][new Action(12, 10, 11, 8)] = 100;
                 aiHistory[i][new Action(14, 5, 12, 5)] = 100;
+                aiHistory[i][new Action(14, 7, 12, 7)] = 100;
                 aiHistory[i][new Action(9, 1, 8, 2)] = 100;
                 aiHistory[i][new Action(4, 2, 5, 3)] = 100;
                 aiActions[i] = new List<Action>();

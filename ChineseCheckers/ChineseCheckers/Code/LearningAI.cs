@@ -11,6 +11,38 @@ namespace ChineseCheckers
 
         protected override Board getAIMove()
         {
+            MonteCarloNodePHExtra.AIPlayerIndex = playerIndex;
+            MonteCarloNodePHExtra.ai = this;
+            // initialize Monte Carlo Tree
+            // the root must be the previous player, so that its children
+            //  represent the actions of the current player
+            playerIndex = playerIndex == 0 ? (Game1.numPlayers - 1) : (playerIndex - 1);
+            MonteCarloNodePHExtra tree = new MonteCarloNodePHExtra(board, null, playerIndex, null, true);
+            // we are going to run the MCTS algorithm until it either stops
+            //  (it has reached a final state)
+            // or until a time limit has expired
+            long stopTime = currentTimeMillis() + THINK_TIME;
+            long nodesExplored = 0;
+            while (currentTimeMillis() < stopTime)
+            {
+                MonteCarloNodePHExtra nodeToExpand = tree.select();
+                if (nodeToExpand == null)
+                {
+                    Console.WriteLine("node to expand is null");
+                    break;
+                }
+                nodeToExpand = nodeToExpand.expand();
+                nodeToExpand.backpropagation(nodeToExpand.playout());
+                nodesExplored++;
+            }
+            Console.WriteLine("explored " + nodesExplored + " nodes ");
+            tree = tree.getBestResult();
+            Game1.aiActions[MonteCarloNodePHExtra.AIPlayerIndex].Add(tree.act);
+            return tree.board;
+        }
+
+        /*protected override Board getAIMove()
+        {
             MonteCarloNodeScore2.AIPlayerIndex = playerIndex;
             MonteCarloNodeScore2.ai = this;
             // initialize Monte Carlo Tree
@@ -38,7 +70,7 @@ namespace ChineseCheckers
             tree = tree.getBestResult();
             Game1.aiActions[MonteCarloNodeEvalHist.AIPlayerIndex].Add(tree.action);
             return tree.board;
-        }
+        }*/
 
         /*protected override Board getAIMove()
         {
