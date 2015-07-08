@@ -124,8 +124,11 @@ namespace ChineseCheckers
             base.Update(gameTime);
             MouseState mouseState = Mouse.GetState();
             KeyboardState keyboardState = Keyboard.GetState();
-            if (keyboardState.IsKeyDown(Keys.Escape))
+            if (keyboardState.IsKeyDown(Keys.Escape)) {
+                // de-comment to take a pic of the table
+                renderTarget.SaveAsPng(new FileStream("output.png", FileMode.OpenOrCreate), renderTarget.Width, renderTarget.Height);
                 Exit();
+            }
             if (state == STATE_WON)
             {
                 if (!PiecesDraw.isAnimationDone())
@@ -242,10 +245,12 @@ namespace ChineseCheckers
         /// This is called when the game should draw itself.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        private Rectangle crrtPlayerRect = new Rectangle(0, 32, 52, 52);
+        private Vector2 crrtPlayerVect = new Vector2(64, 42);
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.SetRenderTarget(renderTarget);
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.White);
 
             spriteBatch.Begin();
             spriteBatch.Draw(table, tableRect, Color.White);
@@ -264,13 +269,17 @@ namespace ChineseCheckers
                 }
             }
             if(state == STATE_RUNNING)
-                spriteBatch.DrawString(font, playerText[crtPlayer], Vector2.Zero, Color.White);
+                spriteBatch.DrawString(font, "Current player:", Vector2.Zero, Color.Black);
             else
-                spriteBatch.DrawString(font, "VICTORIOUS: "+playerText[crtPlayer], Vector2.Zero, Color.White);
+                spriteBatch.DrawString(font, "Victorious player:", Vector2.Zero, Color.Black);
+            spriteBatch.Draw(ball[crtPlayer], crrtPlayerRect, Color.White);
+            String playerType = isAI[crtPlayer] == null ? " - Human" : " - AI";
+            spriteBatch.DrawString(font, playerText[crtPlayer] + playerType,
+                crrtPlayerVect, Color.Black);
             spriteBatch.End();
 
             GraphicsDevice.SetRenderTarget(null);
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.White);
             spriteBatch.Begin();
             spriteBatch.Draw(renderTarget, screenRect, null, Color.White);
             spriteBatch.End();

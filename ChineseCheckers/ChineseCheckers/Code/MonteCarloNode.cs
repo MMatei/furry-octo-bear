@@ -163,8 +163,8 @@ namespace ChineseCheckers
         public virtual void backpropagation(int victory)
         {
             MonteCarloNode node = this;
-            totalGames = 1;
-            victories = victory;
+            totalGames++; // in case we call backprop multiple times
+            victories += victory;
             while (node.parent != null)
             {
                 node.parent.totalGames++;

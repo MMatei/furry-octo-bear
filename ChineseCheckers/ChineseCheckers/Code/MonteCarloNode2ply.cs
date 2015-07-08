@@ -65,21 +65,21 @@ namespace ChineseCheckers
         {
             Board testBoard = new Board(board);
             int pi = playerIndex;
-            int turns = Game1.numPlayers * 5;
-            for (int i = 0; i < Game1.numPlayers; i++)
-                accScore[i] = 0;
+            //int turns = Game1.numPlayers * 5;
+            //for (int i = 0; i < Game1.numPlayers; i++)
+            //    accScore[i] = 0;
             while (!testBoard.hasWon(pi))
             {
                 // play only for a limited time; when that time expires, make a quick evaluation
                 // of the board to determine the winner
-                if (turns == 0)
+                /*if (turns == 0)
                 {
                     int max = 0; // estimate the winner to be the player with max score accumulated
                     for (int i = 1; i < Game1.numPlayers; i++)
                         if (accScore[max] < accScore[i])
                             max = i;
                     return Convert.ToInt32(max == AIPlayerIndex);
-                }
+                }*/
                 int piP1 = (pi + 1) % Game1.numPlayers;
                 List<Action> moves = Action.getActionsPruned(testBoard, pi, ai);
                 if (moves.Count == 0)
@@ -113,9 +113,9 @@ namespace ChineseCheckers
                     }
                 }
                 testBoard.movePiece(bestMove.fromI, bestMove.fromJ, bestMove.toI, bestMove.toJ, pi);
-                accScore[pi] += bestMove.score; // keep track of the score each player racks
+                //accScore[pi] += bestMove.score; // keep track of the score each player racks
                 pi = piP1;// each player moves in turn
-                turns--;
+                //turns--;
             }
             return Convert.ToInt32(testBoard.hasWon(playerIndex));
         }
