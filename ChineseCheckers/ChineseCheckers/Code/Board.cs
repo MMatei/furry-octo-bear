@@ -274,6 +274,9 @@ namespace ChineseCheckers
         /// <summary>
         /// Returns the a list of coordinates where the piece can be legally moved.
         /// This means any free adjacent square, and also jumps.
+        /// The positions are stored as integers, one after the other, instead of pairs
+        /// (we save a wee bit of time doing this, as we don't bother allocating a new
+        /// pair every single time)
         /// </summary>
         public LinkedList<int> getValidMoves(int i, int j)
         {
